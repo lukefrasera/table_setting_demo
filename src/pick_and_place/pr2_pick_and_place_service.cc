@@ -328,11 +328,4 @@ arm_navigation_msgs::MoveArmGoal PickPlace::GetArmPoseGoal() {
 
   return goal;
 }
-  ros::NodeHandle nh_;
-  std::vector<std::string> objects_;
-  std::string arm_;
-  std::map<std::string, PickPlaceGoal> object_goal_map_;
-  actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;
-  Gripper r_gripper_;
-};
 }  // namespace pr2

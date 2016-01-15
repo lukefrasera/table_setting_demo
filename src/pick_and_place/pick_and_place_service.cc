@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   }
 
   // Create Pick Place object
-  PickPlace pp("right_arm");
+  pr2::PickPlace pp("right_arm");
 
   if (read) {
     printf("Read File: %s\n", read_file.c_str());

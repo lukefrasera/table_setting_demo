@@ -1,3 +1,4 @@
+#include "table_setting_demo/pr2_pick_and_place_service.h"
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <arm_navigation_msgs/MoveArmAction.h>

@@ -2,7 +2,18 @@
 #define PICK_AND_PLACE_PR2_PICK_AND_PLACE_SERVICE
 
 #include "table_setting_demo/pick_and_place.h"
+#include <ros/ros.h>
+#include <actionlib/client/simple_action_client.h>
 #include <arm_navigation_msgs/MoveArmAction.h>
+#include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
+#include <tf/transform_listener.h>
+#include <table_setting_demo/pick_and_place.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string>
+#include <iostream>
+#include <fstream>
 
 namespace pr2 {
 struct PickPlaceGoal {

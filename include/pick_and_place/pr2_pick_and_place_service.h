@@ -47,7 +47,7 @@ class PickPlace {
   bool PickAndPlaceObject(
     table_setting_demo::pick_and_place::Request &req,
     table_setting_demo::pick_and_place::Response &res);
-  void PostParameter();
+  void PostParameters();
   void CalibrateObjects();
   void ReadCalibration(std::string filename);
   MoveArmGoal_t GetArmPoseFromPoints(

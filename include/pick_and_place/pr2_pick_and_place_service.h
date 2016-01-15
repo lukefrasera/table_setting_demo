@@ -2,7 +2,7 @@
 #define PICK_AND_PLACE_PR2_PICK_AND_PLACE_SERVICE
 
 #include "table_setting_demo/pick_and_place.h"
-#include <arm_navigation_msgs/MoveArmAction.h>
+#include <arm_navigation/arm_navigation_msgs/MoveArmAction.h>
 
 namespace pr2 {
 struct PickPlaceGoal {

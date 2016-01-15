@@ -8,7 +8,7 @@ Gripper::Gripper(){
   gripper_client_ = new GripperClient("r_gripper_controller/gripper_action", true);
 
   //wait for the gripper action server to come up 
-  while(!gripper_client_->waitForServer(ros::Duration(5.0))){
+  while(!grippexxr_client_->waitForServer(ros::Duration(5.0))){
     ROS_INFO("Waiting for the r_gripper_controller/gripper_action action server to come up");
   }
 }
@@ -45,6 +45,11 @@ void Gripper::Close(){
   else
     ROS_INFO("The gripper failed to close.");
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
   arm_ = arm;
@@ -115,6 +120,19 @@ bool PickPlace::PickAndPlaceObject(
   }
 
   res.success = true;
+  return true;
+}
+
+bool PickPlace::PickAndPlacecheck(
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res) {
+  // check if Pick and Place was successfull
+  actionlib::SimpleClientGoalState state = move_arm_.getState();
+  if (state == actionlib::SimpleClientGoalState::SUCCEEDED) {
+    res.success = true;
+  } else {
+    res.success = false;
+  }
   return true;
 }
 

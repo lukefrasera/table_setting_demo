@@ -42,6 +42,7 @@ class TableObject : public Behavior {
   virtual bool Precondition();
   virtual bool ActivationPrecondition();
   virtual void Work();
+  virtual bool PickAndPlaceDone();
  private:
   mutex::RemoteMutex mut;
   std::string object_;

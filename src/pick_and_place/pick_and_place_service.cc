@@ -43,7 +43,14 @@ int main(int argc, char **argv) {
 
 
   // Advertise the service
-  ros::ServiceServer service = nh.advertiseService("pick_and_place_object", &pr2::PickPlace::PickAndPlaceObject, &pp);
+  ros::ServiceServer service = nh.advertiseService(
+    "pick_and_place_object",
+    &pr2::PickPlace::PickAndPlaceObject,
+    &pp);
+  ros::ServiceServer service = nh.advertiseService(
+    "pick_and_place_check",
+    &pr2::PickPlace::PickAndPlaceCheck,
+    &pp);
   printf("READY to PICK and Place\n");
   ros::spin();
   return 0;

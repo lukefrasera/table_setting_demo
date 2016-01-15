@@ -67,8 +67,19 @@ bool TableObject::Precondition() {
 bool TableObject::ActivationPrecondition() {
   return mut.Lock(state_.activation_potential);
 }
+
+bool TableObject::PickAndPlaceDone() {
+  table_setting_demo::pick_and_place msg;
+  msg.request.object = object_.c_str();
+  ros::service::call("pick_and_place_check", msg);
+  return msg.response.sucess;
+}
+
 void TableObject::Work() {
   PickAndPlace(object_.c_str());
+  while (!PickAndPlaceDone()) {
+    boost::this_thread::sleep(boost::posix_time::millisec(10));
+  }
   mut.Release();
 }
 }

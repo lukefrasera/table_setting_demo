@@ -47,6 +47,9 @@ class PickPlace {
   bool PickAndPlaceObject(
     table_setting_demo::pick_and_place::Request &req,
     table_setting_demo::pick_and_place::Response &res);
+  bool PickAndPlacecheck(
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res);
   void PostParameters();
   void CalibrateObjects();
   void ReadCalibration(std::string filename);

@@ -185,3 +185,13 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+message(${CMAKE_SYSTEM})
+execute_process(
+  COMMAND rosversion -d
+  OUTPUT_VARIABLE ROS_VERSION
+)
+
+if (${ROS_VERSION} MATCHES "groovy")
+  message("Can Build PR2 Service")
+endif (${ROS_VERSION} MATCHES "groovy")
+message(${ROS_VERSION})

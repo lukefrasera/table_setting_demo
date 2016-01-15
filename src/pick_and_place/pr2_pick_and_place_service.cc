@@ -1,5 +1,5 @@
 #include "pick_and_place/pr2_pick_and_place_service.h"
-
+namespace pr2 {
 //Open the gripper
 void Gripper::Open(){
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
@@ -335,3 +335,4 @@ arm_navigation_msgs::MoveArmGoal PickPlace::GetArmPoseGoal() {
   actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;
   Gripper r_gripper_;
 };
+}  // namespace pr2

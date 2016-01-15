@@ -51,7 +51,7 @@ class PickPlace {
   void CalibrateObjects();
   void ReadCaliration(std::string filename);
   MoveArmGoal_t GetArmPoseFromPoints(
-    std::stirng frame_id,
+    std::string frame_id,
     std::string link,
     Point_t position,
     Point_t orientation);

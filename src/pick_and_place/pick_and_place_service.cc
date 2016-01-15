@@ -1,4 +1,4 @@
-#include "pr2_pick_and_place_service.h"
+#include "pick_and_place/pr2_pick_and_place_service.h"
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "pick_and_place_service");

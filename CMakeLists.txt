@@ -214,8 +214,15 @@ if (${ROS_VERSION} MATCHES "groovy")
     tf
     actionlib
   )
+  set(message_INCLUDE_DIRS
+    /opt/ros/groovy/stacks/arm_navigation/arm_navigation_msgs/msg_gen/cpp/include/
+    /opt/ros/groovy/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include/
+  )
   option(BUILD_PR2_PICKPLACE "Build PR2 pick and place service" 1)
   if (${BUILD_PR2_PICKPLACE})
+    include_directories(
+      ${message_INCLUDE_DIRS}
+    )
     add_executable(pr2_pick_service
       src/pick_and_place/pr2_pick_and_place_service.cc
       src/pick_and_place/pick_and_place_service.cc

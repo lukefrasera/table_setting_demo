@@ -16,19 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <cmath>
-#include "table_setting/table_object.h"
-#include "baxter_interface/VelocityJointTrajectoryActionServerConfig.h"
-#include "baxter_interface/PositionJointTrajectoryActionServerConfig.h"
-#include "baxter_interface/GripperActionServerConfig.h"
-#include "baxter_core_msgs/SolvePositionIK.h"
-#include "baxter_core_msgs/SolvePositionIKRequest.h"
+#include "table_setting_demo/table_object_behavior.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Quaternion.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/JointState.h"
-#include "baxter_demos/pick_and_place.h"
+#include "table_setting_demo/pick_and_place.h"
 
 namespace task_net {
 TableObject::TableObject() {}
@@ -60,7 +55,7 @@ void TableObject::UpdateActivationPotential() {
   state_.activation_potential = 1.0f / dist;
 }
 void TableObject::PickAndPlace(std::string object) {
-  baxter_demos::pick_and_place msg;
+  table_setting_demo::pick_and_place msg;
   msg.request.object = object;
   if (ros::service::call("pick_and_place_object", msg)) {
 

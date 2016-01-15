@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include "robotics_task_tree_eval/behavior.h"
 #include "robotics_task_tree_eval/node_types.h"
-#include "table_setting/table_object.h"
+#include "table_setting_demo/table_object_behavior.h"
 
 typedef std::vector<std::string> NodeParam;
 

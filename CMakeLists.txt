@@ -7,8 +7,25 @@ project(table_setting_demo)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+  message_generation
 )
+if ($ENV{ROBOT} MATCHES "pr2")
+  option(BUILD_TABLE_SETTING_DEMO "build table setting demo" OFF)
+else ($ENV{ROBOT} MATCHES "pr2")
+  option(BUILD_TABLE_SETTING_DEMO "build table setting demo" ON)
+endif ($ENV{ROBOT} MATCHES "pr2")
 
+if (${BUILD_TABLE_SETTING_DEMO})
+  message("-- BUILD: TABLE_SETTING_DEMO")
+  find_package(catkin REQUIRED COMPONENTS
+    robotics_task_tree_eval
+    remote_mutex
+  )
+endif (${BUILD_TABLE_SETTING_DEMO})
+find_package(Boost REQUIRED COMPONENTS 
+  date_time
+  thread
+)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -50,11 +67,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  pick_and_place.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -64,10 +80,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -114,6 +130,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a C++ library
@@ -185,13 +202,41 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-message(${CMAKE_SYSTEM})
 execute_process(
   COMMAND rosversion -d
   OUTPUT_VARIABLE ROS_VERSION
 )
 
 if (${ROS_VERSION} MATCHES "groovy")
-  message("Can Build PR2 Service")
+  find_package(catkin REQUIRED COMPONENTS
+    arm_navigation_msgs
+    pr2_controllers_msgs
+    tf
+    actionlib
+  )
+  option(BUILD_PR2_PICKPLACE "Build PR2 pick and place service" 1)
+  if (${BUILD_PR2_PICKPLACE})
+    add_executable(pr2_pick_service
+      src/pick_and_place/pr2_pick_place_service.cc
+      src/pick_and_place/pick_place_service.cc
+    )
+    target_link_libraries(pr2_pick_service
+      ${catkin_LIBRARIES}
+    )
+  endif (${BUILD_PR2_PICKPLACE})
 endif (${ROS_VERSION} MATCHES "groovy")
-message(${ROS_VERSION})
+
+if (${BUILD_TABLE_SETTING_DEMO})
+  add_executable(table_setting_demo
+    src/table_setting_demo.cpp
+    src/table_object_behavior.cpp
+  )
+  target_link_libraries(table_setting_demo
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+  )
+
+  add_dependencies(table_setting_demo
+    robotics_task_tree_eval_generate_messages_cpp
+  )
+endif (${BUILD_TABLE_SETTING_DEMO})

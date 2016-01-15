@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include "robotics_task_tree_eval/behavior.h"
 #include "robotics_task_tree_eval/node_types.h"
-#include "ros_remote_mutex.h"
+#include "remote_mutex/remote_mutex.h"
 
 namespace task_net { 
 class TableObject : public Behavior {
@@ -43,7 +43,7 @@ class TableObject : public Behavior {
   virtual bool ActivationPrecondition();
   virtual void Work();
  private:
-  RemoteMutex mut;
+  mutex::RemoteMutex mut;
   std::string object_;
   std::vector<float> object_pos;
   std::vector<float> neutral_object_pos;

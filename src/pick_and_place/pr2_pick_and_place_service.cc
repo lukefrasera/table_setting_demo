@@ -3,7 +3,7 @@
 #include <arm_navigation_msgs/MoveArmAction.h>
 #include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
 #include <tf/transform_listener.h>
-#include <pr2_arm_navigation_luke/pick_and_place.h>
+#include <table_setting_demo/pick_and_place.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

@@ -49,7 +49,7 @@ class PickPlace {
     table_setting_demo::pick_and_place::Response &res);
   void PostParameter();
   void CalibrateObjects();
-  void ReadCaliration(std::string filename);
+  void ReadCalibration(std::string filename);
   MoveArmGoal_t GetArmPoseFromPoints(
     std::string frame_id,
     std::string link,

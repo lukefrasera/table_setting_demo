@@ -51,8 +51,8 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
   }
 }
 bool PickPlace::PickAndPlaceObject(
-    pr2_arm_navigation_luke::pick_and_place::Request &req,
-    pr2_arm_navigation_luke::pick_and_place::Response &res) {
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res) {
   printf("Picking up Object: %s\n", req.object.c_str());
   r_gripper_.Open();
   // Move to Neutral Start

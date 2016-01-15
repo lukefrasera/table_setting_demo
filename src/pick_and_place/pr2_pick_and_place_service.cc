@@ -1,16 +1,4 @@
-#include "table_setting_demo/pr2_pick_and_place_service.h"
-#include <ros/ros.h>
-#include <actionlib/client/simple_action_client.h>
-#include <arm_navigation_msgs/MoveArmAction.h>
-#include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
-#include <tf/transform_listener.h>
-#include <table_setting_demo/pick_and_place.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string>
-#include <iostream>
-#include <fstream>
+#include "pick_and_place/pr2_pick_and_place_service.h"
 
 //Open the gripper
 void Gripper::Open(){

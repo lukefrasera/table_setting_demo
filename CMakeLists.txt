@@ -217,7 +217,7 @@ if (${ROS_VERSION} MATCHES "groovy")
   option(BUILD_PR2_PICKPLACE "Build PR2 pick and place service" 1)
   if (${BUILD_PR2_PICKPLACE})
     add_executable(pr2_pick_service
-      src/pick_and_place/pr2_pick_and_place_service.cc
+      src/pick_and_place/pr2_pick_place_service.cc
       src/pick_and_place/pick_and_place_service.cc
     )
     target_link_libraries(pr2_pick_service

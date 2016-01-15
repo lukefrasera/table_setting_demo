@@ -1,6 +1,22 @@
 #include "pick_and_place/pr2_pick_and_place_service.h"
 namespace pr2 {
 //Open the gripper
+void Gripper::Gripper(){
+
+  //Initialize the client for the Action interface to the gripper controller
+  //and tell the action client that we want to spin a thread by default
+  gripper_client_ = new GripperClient("r_gripper_controller/gripper_action", true);
+
+  //wait for the gripper action server to come up 
+  while(!gripper_client_->waitForServer(ros::Duration(5.0))){
+    ROS_INFO("Waiting for the r_gripper_controller/gripper_action action server to come up");
+  }
+}
+
+Gripper::~Gripper(){
+  delete gripper_client_;
+}
+
 void Gripper::Open(){
   pr2_controllers_msgs::Pr2GripperCommandGoal open;
   open.command.position = 0.08;
@@ -50,6 +66,9 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
     printf("Object: %s\n", objects_[i].c_str());
   }
 }
+
+PickPlace::~PickPlace() {}
+
 bool PickPlace::PickAndPlaceObject(
     table_setting_demo::pick_and_place::Request &req,
     table_setting_demo::pick_and_place::Response &res) {

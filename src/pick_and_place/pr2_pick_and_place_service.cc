@@ -1,7 +1,7 @@
 #include "pick_and_place/pr2_pick_and_place_service.h"
 namespace pr2 {
 //Open the gripper
-void Gripper::Gripper(){
+Gripper::Gripper(){
 
   //Initialize the client for the Action interface to the gripper controller
   //and tell the action client that we want to spin a thread by default

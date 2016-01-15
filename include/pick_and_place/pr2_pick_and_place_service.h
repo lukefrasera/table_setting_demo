@@ -36,7 +36,7 @@ class Gripper {
   virtual void Open();
   virtual void Close();
  private:
-  GripperClient *gripper_client;
+  GripperClient *gripper_client_;
 };
 
 class PickPlace {

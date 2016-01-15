@@ -209,7 +209,7 @@ execute_process(
 
 if (${ROS_VERSION} MATCHES "groovy")
   find_package(catkin REQUIRED COMPONENTS
-    arm_navigation_msgs
+    arm_navigation
     pr2_controllers_msgs
     tf
     actionlib

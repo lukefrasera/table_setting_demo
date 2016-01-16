@@ -43,9 +43,11 @@ class TableObject : public Behavior {
   virtual bool ActivationPrecondition();
   virtual void Work();
   virtual bool PickAndPlaceDone();
+  virtual bool CheckWork();
  private:
   mutex::RemoteMutex mut;
   std::string object_;
+  std::string object_id_;
   std::vector<float> object_pos;
   std::vector<float> neutral_object_pos;
 };

@@ -13,9 +13,19 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <stdint.h>
 #include <fstream>
 
 namespace pr2 {
+
+typedef enum STATE {
+  APPROACHING = 0,
+  PICKED,
+  PLACING,
+  PLACED,
+  NEUTRAL
+} STATE_t;
+
 struct PickPlaceGoal {
   arm_navigation_msgs::MoveArmGoal pick_pose;
   arm_navigation_msgs::MoveArmGoal place_pose;
@@ -70,6 +80,7 @@ class PickPlace {
   std::map<std::string, PickPlaceGoal> object_goal_map_;
   actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;
   Gripper r_gripper_;
+  uint32_t state_;
 };
 }
 #endif  // PICK_AND_PLACE_PR2_PICK_AND_PLACE_SERVICE

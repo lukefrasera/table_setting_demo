@@ -70,6 +70,9 @@ find_package(Boost REQUIRED COMPONENTS
 add_service_files(
   FILES
   pick_and_place.srv
+  pick_and_place_state.srv
+  object_request.srv
+  object_position.srv
 )
 
 ## Generate actions in the 'action' folder

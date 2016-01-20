@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <cmath>
+#include "log.h"
 #include "table_setting_demo/table_object_behavior.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/Pose.h"
@@ -23,7 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "geometry_msgs/Quaternion.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/JointState.h"
+#include "table_setting_demo/table_setting_demo_types.h"
 #include "table_setting_demo/pick_and_place.h"
+#include "table_setting_demo/object_request.h"
+#include "table_setting_demo/pick_and_place_state.h"
+#include "table_setting_demo/object_position.h"
 
 namespace pr2 {
 typedef enum STATE {
@@ -75,14 +80,14 @@ void TableObject::PickAndPlace(std::string object) {
   }
 }
 bool TableObject::Precondition() {
-  table_setting_demo::qr_get_object msg;
-  table_setting_demo::qr_get_object_position pos_msg;
+  table_setting_demo::object_request msg;
+  table_setting_demo::object_position pos_msg;
   msg.request.object = object_.c_str();
   // Check if object available in scene
   if (ros::service::call("qr_get_object", msg)) {
     if (msg.response.in_scene) {
-      object_id_ = msg.response.object;
-      pos_msg.request.object = object_id_;
+      object_id_ = msg.response.object_id;
+      pos_msg.request.object_id = object_id_;
       if (ros::service::call("qr_get_object_position", pos_msg)) {
         object_pos = pos_msg.response.position;
       } else {
@@ -122,7 +127,8 @@ float CalcPositionDistance(std::vector<float> pos_a, std::vector<float> pos_b) {
 bool TableObject::CheckWork() {
   table_setting_demo::pick_and_place_state msg;
   table_setting_demo::qr_inview view_msg;
-  table_setting_demo::qr_get_object_position pos_msg;
+  table_setting_demo::object_position pos_msg;
+  float distance_thresh = .01;
   float dist;
   if(ros::service::call("pick_and_place_state", msg)) {
     if (msg.response.state == pr2::APPROACHING) {
@@ -132,9 +138,9 @@ bool TableObject::CheckWork() {
       // TODO: consider self intersection with objects blocking the view.
       view_msg.request.object = object_id_.c_str();
       if (ros::service::call("qr_object_inview", view_msg)) {
-        if (view_msg.response.inview) {
+        if (view_msg.response.success) {
           // Check if the object is in the same place with in reason
-          pos_msg.request.object = object_id_;
+          pos_msg.request.object_id = object_id_;
           if (ros::service::call("qr_object_get_position", pos_msg)) {
             dist = CalcPositionDistance(pos_msg.response.position, object_pos);
             if (dist < distance_thresh) {

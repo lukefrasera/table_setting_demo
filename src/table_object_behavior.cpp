@@ -59,7 +59,8 @@ TableObject::~TableObject() {}
 
 void TableObject::UpdateActivationPotential() {
   float dist;
-  // Get object neutral position and object position from service call potentially
+  // Get object neutral position and object position 
+  //   from service call potentially
   float x = pow(neutral_object_pos[0] - object_pos[0], 2);
   float y = pow(neutral_object_pos[1] - object_pos[1], 2);
   float z = pow(neutral_object_pos[2] - object_pos[2], 2);
@@ -125,7 +126,8 @@ bool TableObject::CheckWork() {
   float dist;
   if(ros::service::call("pick_and_place_state", msg)) {
     if (msg.response.state == pr2::APPROACHING) {
-      LOG_INFO("Approaching object: %s - Checking Object Availability", object_.c_str());
+      LOG_INFO("Approaching object: %s - Checking Object Availability",
+        object_.c_str());
       // Check if the object is still in view
       // TODO: consider self intersection with objects blocking the view.
       view_msg.request.object = object_id_.c_str();

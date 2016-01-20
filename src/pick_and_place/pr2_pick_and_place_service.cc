@@ -136,6 +136,13 @@ bool PickPlace::PickAndPlacecheck(
   return true;
 }
 
+bool PickAndPlaceState(
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res) {
+  res.state = state_;
+  return true;
+}
+
 void PickPlace::PostParameters() {
   std::vector<double> positions;
   std::string topic = "/ObjectPositions/";

@@ -209,6 +209,27 @@ execute_process(
   COMMAND rosversion -d
   OUTPUT_VARIABLE ROS_VERSION
 )
+set(QR_SEARCHES_ $ENV{HOME}/.local/include /usr/local/include)
+set(QR_NAMES qr_detect quad_tree)
+set(QR_LIB_SEARCH $ENV{HOME}/.local/lib /usr/local/lib)
+find_path(QR_INCLUDE_DIRS NAMES qr_detect.h quad_tree.h
+  PATHS ${QR_SEARCHES_}
+  PATH_SUFFIXES qr_detect
+)
+find_library(QR_LIBRARY
+  NAMES qr_detect
+  PATHS ${QR_LIB_SEARCH}
+)
+
+find_library(Quad_LIBRARY
+  NAMES quad_tree
+  PATHS ${QR_LIB_SEARCH}
+)
+set(QR_LIBRARIES ${Quad_LIBRARY} ${QR_LIBRARY})
+if (EXISTS ${QR_LIBRARY} AND EXISTS ${Quad_LIBRARY})
+  set(QR_FOUND True)
+endif()
+
 
 if (${ROS_VERSION} MATCHES "groovy")
   find_package(catkin REQUIRED COMPONENTS
@@ -217,6 +238,7 @@ if (${ROS_VERSION} MATCHES "groovy")
     tf
     actionlib
   )
+
   set(message_INCLUDE_DIRS
     /opt/ros/groovy/stacks/arm_navigation/arm_navigation_msgs/msg_gen/cpp/include/
     /opt/ros/groovy/stacks/pr2_controllers/pr2_controllers_msgs/msg_gen/cpp/include/
@@ -248,5 +270,19 @@ if (${BUILD_TABLE_SETTING_DEMO})
 
   add_dependencies(table_setting_demo
     robotics_task_tree_eval_generate_messages_cpp
+  )
+
+  if (NOT ${QR_FOUND})
+    message( FATAL_ERROR "QR Library not found cannot build table demo")
+  endif()
+
+  include_directories(${QR_INCLUDE_DIRS})
+  add_executable(qr_object_track_service
+    src/qr/qr_object_service.cc
+    src/qr/qr_object_detect.cc
+  )
+  target_link_libraries(qr_object_track_service
+    ${QR_LIBRARIES}
+    ${catkin_LIBRARIES}
   )
 endif (${BUILD_TABLE_SETTING_DEMO})

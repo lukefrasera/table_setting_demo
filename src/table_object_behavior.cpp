@@ -146,12 +146,18 @@ bool TableObject::CheckWork() {
             if (dist < distance_thresh) {
               return true;
             }
+          } else {
+            LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "qr_object_get_positon");
           }
         } else {
           return false;
         }
+      } else {
+        LOG_INFO("SERVICE - [%s] NOT AVILABLE", "qr_object_inview");
       }
     }
+  } else {
+    LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "pick_and_place_state");
   }
   return true;
 }

@@ -259,6 +259,8 @@ if (${ROS_VERSION} MATCHES "groovy")
 endif (${ROS_VERSION} MATCHES "groovy")
 
 if (${BUILD_TABLE_SETTING_DEMO})
+  find_package(OpenCV REQUIRED)
+
   add_executable(table_setting_demo
     src/table_setting_demo.cpp
     src/table_object_behavior.cpp
@@ -284,5 +286,6 @@ if (${BUILD_TABLE_SETTING_DEMO})
   target_link_libraries(qr_object_track_service
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
   )
 endif (${BUILD_TABLE_SETTING_DEMO})

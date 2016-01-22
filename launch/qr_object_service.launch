@@ -1,0 +1,6 @@
+<launch>
+  <arg name="camera_topic" default="/camera/rgb/image_raw"/>
+  <node name="QrService" pkg="table_setting_demo" type="qr_object_track_service" output="screen">
+    <param name="camera_topic" value="$(arg camera_topic)" />
+  </node>
+</launch>

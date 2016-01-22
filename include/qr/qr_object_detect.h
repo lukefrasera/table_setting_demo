@@ -2,7 +2,7 @@
 #define QR_OBJECT_DETECT_H_
 #include "log.h"
 #include "qr_detect.h"
-#include <opencv2/features2d.hpp>
+#include <opencv2/features2d/features2d.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace qr {
@@ -42,7 +42,12 @@ class QrTracker : public Kalman2DTracker {
 };
 
 class QrObjectsTrack {
+ public:
+  QrObjectsTrack();
+  virtual ~QrObjectsTrack();
 
+  bool GetObject(std::string object, std::string &object_id);
+  bool ObjectInView(std::string object);
 };
 }  // namespace qr
 #endif  // QR_OBJECT_DETECT_H_

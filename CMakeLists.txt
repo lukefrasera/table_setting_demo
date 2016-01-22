@@ -26,6 +26,11 @@ find_package(Boost REQUIRED COMPONENTS
   date_time
   thread
 )
+
+option(LOG_INFO_PRINTING "Output Debugging logging information" 0)
+if (${LOG_INFO_PRINTING})
+  add_definitions(-DLOG_INFO_PRINTING)
+endif()
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -228,6 +233,8 @@ find_library(Quad_LIBRARY
 set(QR_LIBRARIES ${Quad_LIBRARY} ${QR_LIBRARY})
 if (EXISTS ${QR_LIBRARY} AND EXISTS ${Quad_LIBRARY})
   set(QR_FOUND True)
+else()
+  set(QR_FOUND False)
 endif()
 
 
@@ -257,9 +264,17 @@ if (${ROS_VERSION} MATCHES "groovy")
     )
   endif (${BUILD_PR2_PICKPLACE})
 endif (${ROS_VERSION} MATCHES "groovy")
-
+################################################################################
+################################################################################
 if (${BUILD_TABLE_SETTING_DEMO})
   find_package(OpenCV REQUIRED)
+  find_package(catkin REQUIRED COMPONENTS
+    std_msgs
+    image_transport
+    cv_bridge
+    robotics_task_tree_eval
+    remote_mutex
+  )
 
   add_executable(table_setting_demo
     src/table_setting_demo.cpp
@@ -268,10 +283,6 @@ if (${BUILD_TABLE_SETTING_DEMO})
   target_link_libraries(table_setting_demo
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
-  )
-
-  add_dependencies(table_setting_demo
-    robotics_task_tree_eval_generate_messages_cpp
   )
 
   if (NOT ${QR_FOUND})
@@ -287,5 +298,8 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+  )
+  add_dependencies(table_setting_demo
+    table_setting_demo_generate_messages_cpp
   )
 endif (${BUILD_TABLE_SETTING_DEMO})

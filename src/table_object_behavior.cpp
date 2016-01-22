@@ -141,13 +141,13 @@ bool TableObject::CheckWork() {
         if (view_msg.response.success) {
           // Check if the object is in the same place with in reason
           pos_msg.request.object_id = object_id_;
-          if (ros::service::call("qr_object_get_position", pos_msg)) {
+          if (ros::service::call("qr_get_object_position", pos_msg)) {
             dist = CalcPositionDistance(pos_msg.response.position, object_pos);
             if (dist < distance_thresh) {
               return true;
             }
           } else {
-            LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "qr_object_get_positon");
+            LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "qr_get_object_position");
           }
         } else {
           return false;

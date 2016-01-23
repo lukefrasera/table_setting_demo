@@ -9,6 +9,7 @@
 #include "table_setting_demo/pick_and_place.h"
 #include "table_setting_demo/table_setting_demo_types.h"
 #include "qr/qr_object_detect.h"
+#include "qr_detect.h"
 
 
 class QrObjectService {
@@ -33,6 +34,7 @@ class QrObjectService {
 
   image_transport::Subscriber image_subscriber;
   image_transport::ImageTransport it;
+  cv::Ptr<qr::Tracker> orb_tracker;
 };
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +52,19 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
     1,
     &QrObjectService::CameraImageCallback,
     this);
+
+  // load first frame into akaze tracker
+  cv::Mat image = cv::imread("/home/luke/Pictures/qr_code_sample_.jpg");
+  if (!image.data) {
+    ROS_ERROR("Image didn't load");
+  }
+
+  double orb_samples = 1500;
+  cv::Ptr<cv::ORB> orb = new cv::ORB(orb_samples);
+  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
+  orb_tracker = new qr::Tracker(orb, matcher);
+
+  orb_tracker->InitializeTracker(image, "test_object");
 }
 
 QrObjectService::~QrObjectService() {}
@@ -63,11 +78,17 @@ void QrObjectService::CameraImageCallback(
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-  LOG_INFO("Image Received!");
   QrDetectionProcess(image_ptr->image);
 }
 
 bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
+  // qr::Contour_t corners;
+  // qr::QRDetectIdentifiers(image, &corners);
+  // cv::drawContours(image, corners, -1, cv::Scalar(0,255,50));
+  // cv::imshow("Detection", image);
+  // cv::waitKey(10);
+
+  orb_tracker->ProcessFrame(image);
   return true;
 }
 
@@ -107,7 +128,6 @@ bool QrObjectService::GetQrPosition(
 
 int main(int argc, char *argv[]) {
   // Initialize node environment
-  LOG_INFO("HELLO");
   ros::init(argc, argv, "qr_object_detection_service");
   ros::NodeHandle nh;
   QrObjectService qr_service(&nh);

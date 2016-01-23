@@ -4,6 +4,7 @@
 #include "qr_detect.h"
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace qr {
 typedef enum TrackingState {
@@ -16,6 +17,23 @@ typedef struct TrackerState {
   bool valid;
 } TrackerState_t;
 
+class Tracker {
+ public:
+  Tracker(
+    cv::Ptr<cv::Feature2D> detector_,
+    cv::Ptr<cv::DescriptorMatcher> matcher_);
+  void InitializeTracker(
+    const cv::Mat &frame,
+    // std::vector<cv::Point2f> bbox,
+    std::string object_id);
+  void ProcessFrame(const cv::Mat &image);
+ protected:
+  cv::Ptr<cv::Feature2D> detector;
+  cv::Ptr<cv::DescriptorMatcher> matcher;
+  cv::Mat descriptor;
+  std::vector<cv::KeyPoint> key_points;
+};
+
 class Kalman2DTracker {
  public:
   Kalman2DTracker();
@@ -24,7 +42,7 @@ class Kalman2DTracker {
   void MeasurementUpdate(cv::Point2f position, cv::Rect window);
   void GetStatePrediction(cv::Point2f *position, cv::Rect *window);
   void GetStateEstimate(cv::Point2f *position, cv::Rect *window);
- private:
+ protected:
   cv::KalmanFilter position_filter;
   cv::KalmanFilter bounding_filter;
 };

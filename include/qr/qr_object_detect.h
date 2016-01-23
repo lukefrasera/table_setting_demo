@@ -17,34 +17,40 @@ typedef struct TrackerState {
   bool valid;
 } TrackerState_t;
 
-class Tracker {
- public:
-  Tracker(
-    cv::Ptr<cv::Feature2D> detector_,
-    cv::Ptr<cv::DescriptorMatcher> matcher_);
-  void InitializeTracker(
-    const cv::Mat &frame,
-    // std::vector<cv::Point2f> bbox,
-    std::string object_id);
-  void ProcessFrame(const cv::Mat &image);
- protected:
-  cv::Ptr<cv::Feature2D> detector;
-  cv::Ptr<cv::DescriptorMatcher> matcher;
-  cv::Mat descriptor;
-  std::vector<cv::KeyPoint> key_points;
-};
-
 class Kalman2DTracker {
  public:
   Kalman2DTracker();
   virtual ~Kalman2DTracker();
 
-  void MeasurementUpdate(cv::Point2f position, cv::Rect window);
-  void GetStatePrediction(cv::Point2f *position, cv::Rect *window);
-  void GetStateEstimate(cv::Point2f *position, cv::Rect *window);
+  void InitializeFilter(const cv::Rect &measurement);
+  void MeasurementUpdate(const cv::Rect &measurement);
+  void GetStatePrediction(cv::Rect *measurement);
+  void GetStateEstimate(cv::Rect *measurement);
  protected:
   cv::KalmanFilter position_filter;
   cv::KalmanFilter bounding_filter;
+  cv::Mat state_position_prediction, state_position_estimate;
+  cv::Mat state_bounding_prediction, state_bounding_estimate;
+};
+
+class Tracker {
+ public:
+  Tracker(
+    cv::Ptr<cv::Feature2D> detector_,
+    cv::Ptr<cv::DescriptorMatcher> matcher_);
+  virtual void InitializeTracker(
+    const cv::Mat &frame,
+    std::vector<cv::Point> bbox,
+    std::string object_id);
+  virtual void ProcessFrame(const cv::Mat &image);
+ protected:
+  cv::Ptr<cv::Feature2D> detector;
+  cv::Ptr<cv::DescriptorMatcher> matcher;
+  cv::Mat descriptor;
+  std::vector<cv::KeyPoint> key_points;
+  cv::Rect bounding;
+
+  Kalman2DTracker filter;
 };
 
 class QrFeatureDetector {

@@ -1,6 +1,10 @@
 <launch>
   <arg name="camera_topic" default="/camera/rgb/image_raw"/>
+  <arg name="image_file" default="test_image.jpg"/>
+  <arg name="folder" default="/home/luke/Pictures/qr_bowl"/>
   <node name="QrService" pkg="table_setting_demo" type="qr_object_track_service" output="screen">
     <param name="camera_topic" value="$(arg camera_topic)" />
+    <param name="image_file" value="$(arg image_file)" />
+    <rosparam file="$(arg folder)/bbox.yaml"/>
   </node>
 </launch>

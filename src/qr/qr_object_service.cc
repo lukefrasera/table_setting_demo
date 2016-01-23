@@ -1,8 +1,10 @@
 #include "log.h"
 #include "stdlib.h"
 #include "stdint.h"
+#include <iostream>
 #include "ros/ros.h"
 #include <image_transport/image_transport.h>
+#include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include "table_setting_demo/object_request.h"
 #include "table_setting_demo/object_position.h"
@@ -54,17 +56,41 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
     this);
 
   // load first frame into akaze tracker
-  cv::Mat image = cv::imread("/home/luke/Pictures/qr_code_sample_.jpg");
+  std::string image_filename;
+  if (!local_nh.getParam("image_file", image_filename)) {
+    ROS_ERROR("Image File parameter missing!");
+  }
+  cv::Mat image = cv::imread(image_filename.c_str());
   if (!image.data) {
-    ROS_ERROR("Image didn't load");
+    ROS_ERROR("Image: [%s] didn't load", image_filename.c_str());
   }
 
-  double orb_samples = 1500;
+  // Split image file into parts
+  boost::filesystem::path image_path = image_filename;
+  printf("Filename: %s, extension: %s\n",
+    image_path.stem().string().c_str(),
+    image_path.extension().string().c_str());
+
+  std::vector<int> bounding;
+  if (!local_nh.getParam(image_path.stem().string(), bounding)) {
+    ROS_ERROR("Image [%s]: Bounds parameters not found!",
+      image_path.stem().string().c_str());
+  }
+
+  std::vector<cv::Point> bbox(bounding.size()/2);
+  for (int i = 0; i < bbox.size(); ++i) {
+    bbox[i].x = bounding[2*i];
+    bbox[i].y = bounding[2*i+1];
+    std::cout <<bbox[i] <<std::endl;
+  }
+
+  double orb_samples = 1000;
   cv::Ptr<cv::ORB> orb = new cv::ORB(orb_samples);
-  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
+  cv::Ptr<cv::DescriptorMatcher> matcher =
+    cv::DescriptorMatcher::create("BruteForce-Hamming");
   orb_tracker = new qr::Tracker(orb, matcher);
 
-  orb_tracker->InitializeTracker(image, "test_object");
+  orb_tracker->InitializeTracker(image, bbox, "test_object");
 }
 
 QrObjectService::~QrObjectService() {}

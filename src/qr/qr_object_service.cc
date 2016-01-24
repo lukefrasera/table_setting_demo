@@ -7,6 +7,8 @@
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include "table_setting_demo/object_request.h"
+#include <cv_bridge/cv_bridge.h>
+#include "table_setting_demo/object_request.h"
 #include "table_setting_demo/object_position.h"
 #include "table_setting_demo/pick_and_place.h"
 #include "table_setting_demo/table_setting_demo_types.h"

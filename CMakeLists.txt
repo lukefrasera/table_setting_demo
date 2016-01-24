@@ -270,6 +270,7 @@ if (${BUILD_TABLE_SETTING_DEMO})
   find_package(OpenCV REQUIRED)
   find_package(catkin REQUIRED COMPONENTS
     std_msgs
+    sensor_msgs
     image_transport
     cv_bridge
     robotics_task_tree_eval

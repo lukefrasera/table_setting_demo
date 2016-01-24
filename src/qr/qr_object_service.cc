@@ -108,11 +108,11 @@ void QrObjectService::CameraImageCallback(
 }
 
 bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
-  // qr::Contour_t corners;
-  // qr::QRDetectIdentifiers(image, &corners);
-  // cv::drawContours(image, corners, -1, cv::Scalar(0,255,50));
-  // cv::imshow("Detection", image);
-  // cv::waitKey(10);
+  qr::Contour_t corners;
+  qr::QRDetectIdentifiers(image, &corners);
+  cv::drawContours(image, corners, -1, cv::Scalar(0,255,50));
+  cv::imshow("Detection", image);
+  cv::waitKey(10);
 
   orb_tracker->ProcessFrame(image);
   return true;

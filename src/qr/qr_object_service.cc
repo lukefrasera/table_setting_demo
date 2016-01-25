@@ -111,9 +111,20 @@ void QrObjectService::CameraImageCallback(
 
 bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   qr::Contour_t corners;
-  qr::QRDetectIdentifiers(image, &corners);
-  cv::drawContours(image, corners, -1, cv::Scalar(0,255,50));
-  cv::imshow("Detection", image);
+  std::vector<std::vector<cv::Point2f> > points;
+  points = qr::QRDetectIdentifiers(image, &corners);
+  cv::Mat img = image.clone();
+  if (corners.size() > 0) {
+    cv::drawContours(img, corners, -1, cv::Scalar(0,255,50));
+  }
+
+  if (points.size() > 0) {
+    for (int i = 0; i < points[0].size(); ++i) {
+      std::cout << points[0][i] << std::endl;
+      cv::circle(img, points[0][i], 5, cv::Scalar(10, 200, 255), 2);
+    }
+  }
+  cv::imshow("Detection", img);
   cv::waitKey(10);
 
   orb_tracker->ProcessFrame(image);

@@ -57,10 +57,10 @@ void Tracker::ProcessFrame(const cv::Mat &image) {
     }
   }
 
-  cv::Mat img2 = image.clone();
-  cv::drawKeypoints(image, matched_sample, img2);
-  cv::imshow("Matches", img2);
-  cv::waitKey(10);
+  // cv::Mat img2 = image.clone();
+  // cv::drawKeypoints(image, matched_sample, img2);
+  // cv::imshow("Matches", img2);
+  // cv::waitKey(10);
 }
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Kalman2DTracker ///////////////////////////////

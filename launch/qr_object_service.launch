@@ -1,4 +1,5 @@
 <launch>
+  <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>
   <arg name="camera_topic" default="/camera/rgb/image_raw"/>
   <arg name="image_file" default="test_image.jpg"/>
   <arg name="folder" default="/home/luke/Pictures/qr_bowl"/>

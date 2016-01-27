@@ -3,6 +3,7 @@
 #include "log.h"
 #include "qr_detect.h"
 #include <opencv2/features2d/features2d.hpp>
+#include "opencv2/tracking.hpp"
 #include <opencv2/opencv.hpp>
 #include <vector>
 
@@ -24,6 +25,7 @@ class Kalman2DTracker {
 
   void InitializeFilter(const cv::Rect &measurement);
   void MeasurementUpdate(const cv::Rect &measurement);
+  void Update();
   void GetStatePrediction(cv::Rect *measurement);
   void GetStateEstimate(cv::Rect *measurement);
  protected:
@@ -44,11 +46,12 @@ class Tracker {
     std::string object_id);
   virtual void ProcessFrame(const cv::Mat &image);
  protected:
-  cv::Ptr<cv::Feature2D> detector;
+  cv::Ptr<cv::Feature2D> detector, detector_alt;
   cv::Ptr<cv::DescriptorMatcher> matcher;
   cv::Mat descriptor;
-  std::vector<cv::KeyPoint> key_points;
+  std::vector<cv::KeyPoint> key_points, key_points_alt;
   cv::Rect bounding;
+  cv::Point2f roi_center;
 
   Kalman2DTracker filter;
 };
@@ -70,6 +73,8 @@ class QrObjectsTrack {
   QrObjectsTrack();
   virtual ~QrObjectsTrack();
 
+  uint32_t Init();
+  bool UpdateFrame(cv::Mat image);
   bool GetObject(std::string object, std::string &object_id);
   bool ObjectInView(std::string object);
 };

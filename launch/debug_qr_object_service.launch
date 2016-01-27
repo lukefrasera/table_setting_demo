@@ -1,8 +1,15 @@
 <launch>
-  <arg name="camera_topic" default="/camera/rgb/image_raw"/>
+  <arg name="use-pr2" default="false"/>
+
+  <arg if="$(arg use-pr2)" name="camera_topic" default="/head_mount_kinect/rgb/image_raw"/>
+  <arg unless="$(arg use-pr2)" name="camera_topic" default="/usb_cam/image_raw"/>
+  <include unless="$(arg use-pr2)" file="$(find usb_cam)/launch/usb_cam-test.launch" />
+
+
   <arg name="image_file" default="test_image.jpg"/>
   <arg name="folder" default="/home/luke/Pictures/qr_bowl"/>
-  <node name="QrService" pkg="table_setting_demo" launch-prefix="ddd --args" type="qr_object_track_service" output="screen">
+
+  <node name="QrService" launch-prefix="ddd --args" pkg="table_setting_demo" type="qr_object_track_service" output="screen">
     <param name="camera_topic" value="$(arg camera_topic)" />
     <param name="image_file" value="$(arg image_file)" />
     <rosparam file="$(arg folder)/bbox.yaml"/>

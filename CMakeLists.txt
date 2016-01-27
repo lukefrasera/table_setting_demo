@@ -267,7 +267,7 @@ endif (${ROS_VERSION} MATCHES "groovy")
 ################################################################################
 ################################################################################
 if (${BUILD_TABLE_SETTING_DEMO})
-  find_package(OpenCV REQUIRED)
+  include_directories(/opt/ros/indigo/include/opencv-3.1.0-dev)
   find_package(catkin REQUIRED COMPONENTS
     std_msgs
     sensor_msgs
@@ -284,6 +284,7 @@ if (${BUILD_TABLE_SETTING_DEMO})
   target_link_libraries(table_setting_demo
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
+
   )
 
   if (NOT ${QR_FOUND})
@@ -295,10 +296,33 @@ if (${BUILD_TABLE_SETTING_DEMO})
     src/qr/qr_object_service.cc
     src/qr/qr_object_detect.cc
   )
+  set(OPENCV3_LIB_DIR /opt/ros/indigo/lib)
   target_link_libraries(qr_object_track_service
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
+    ${OPENCV3_LIB_DIR}/libopencv_tracking3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_core3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_imgproc3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_imgcodecs3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_highgui3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_rgbd3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_ximgproc3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_calib3d3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_ccalib3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_aruco3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_bgsegm3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_bioinspired3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_datasets3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_dnn3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_dpm3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_face3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_features2d3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_flann3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_fuzzy3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_line_descriptor3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_ml3.so.3.1
+    ${OPENCV3_LIB_DIR}/libopencv_objdetect3.so.3.1
+    
   )
   add_dependencies(table_setting_demo
     table_setting_demo_generate_messages_cpp

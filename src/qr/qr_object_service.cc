@@ -83,16 +83,20 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
   for (int i = 0; i < bbox.size(); ++i) {
     bbox[i].x = bounding[2*i];
     bbox[i].y = bounding[2*i+1];
-    std::cout <<bbox[i] <<std::endl;
+    std::cout << bbox[i] <<std::endl;
   }
 
   double orb_samples = 1000;
-  cv::Ptr<cv::ORB> orb = new cv::ORB(orb_samples);
+  cv::Ptr<cv::ORB> orb = cv::ORB::create();
+  orb->setMaxFeatures(orb_samples);
   cv::Ptr<cv::DescriptorMatcher> matcher =
     cv::DescriptorMatcher::create("BruteForce-Hamming");
   orb_tracker = new qr::Tracker(orb, matcher);
 
   orb_tracker->InitializeTracker(image, bbox, "test_object");
+
+  // Initialize tracking system
+  object_detector.Init();
 }
 
 QrObjectService::~QrObjectService() {}
@@ -114,9 +118,6 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   std::vector<std::vector<cv::Point2f> > points;
   points = qr::QRDetectIdentifiers(image, &corners);
   cv::Mat img = image.clone();
-  if (corners.size() > 0) {
-    cv::drawContours(img, corners, -1, cv::Scalar(0,255,50));
-  }
 
   if (points.size() > 0) {
     for (int i = 0; i < points[0].size(); ++i) {
@@ -128,6 +129,7 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   cv::waitKey(10);
 
   orb_tracker->ProcessFrame(image);
+  object_detector.UpdateFrame(image);
   return true;
 }
 

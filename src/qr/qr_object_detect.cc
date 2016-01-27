@@ -1,4 +1,5 @@
 #include "qr/qr_object_detect.h"
+#include <limits>
 namespace qr {
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////// Tracker ///////////////////////////////////
@@ -16,10 +17,11 @@ void Tracker::InitializeTracker(
     std::vector<cv::Point> bbox,
     std::string object_id) {
 
+  cv::Ptr<cv::Tracker> tracker;
   bounding.x = bbox[0].x;
   bounding.y = bbox[0].y;
-  bounding.width  = bbox[0].x - bbox[1].x;
-  bounding.height = bbox[0].y - bbox[1].y;
+  bounding.width  = bbox[1].x - bbox[0].x;
+  bounding.height = bbox[1].y - bbox[0].y;
 
   // Initialize filter
   filter.InitializeFilter(bounding);
@@ -31,19 +33,50 @@ void Tracker::InitializeTracker(
 
 
 
+  roi_center.x = roi.cols/2.0;
+  roi_center.y = roi.rows/2.0;
+
   detector->detect(roi, key_points);
   detector->compute(roi, key_points, descriptor);
   cv::Mat img = roi.clone();
   cv::drawKeypoints(roi, key_points, img);
   imshow("Original", img);
 }
+
+std::vector<cv::Point2f> KeyToPoints(std::vector<cv::KeyPoint> points) {
+  std::vector<cv::Point2f> output(points.size());
+  for (int i = 0; i < points.size(); ++i) {
+    output[i] = points[i].pt;
+  }
+  return output;
+}
+
 void Tracker::ProcessFrame(const cv::Mat &image) {
   const double nn_match_ratio = 0.8f;
   std::vector<cv::KeyPoint> img_keypoints;
   cv::Mat img_descriptor;
+  double ransac_thresh = 2.5f;
+  cv::Mat image_roi;
+  bool roi_set = false;
+  cv::Rect prediction;
+  filter.GetStatePrediction(&prediction);
+  try {
+    image_roi = image(prediction);
+    if (image_roi.rows > 128 && image_roi.cols > 128) {
+      imshow("Prediction", image_roi);
+      roi_set = true;
+    }
+  } catch (cv::Exception e) {
+    LOG_INFO("ROI: Not within frame!");
+  }
 
-  detector->detect(image, img_keypoints);
-  detector->compute(image, img_keypoints, img_descriptor);
+  if (roi_set) {
+    detector->detect(image_roi, img_keypoints);
+    detector->compute(image_roi, img_keypoints, img_descriptor);
+  } else {
+    detector->detect(image, img_keypoints);
+    detector->compute(image, img_keypoints, img_descriptor);
+  }
 
   std::vector< std::vector<cv::DMatch> > matches;
   std::vector<cv::KeyPoint> matched_sample, matched_image;
@@ -57,10 +90,106 @@ void Tracker::ProcessFrame(const cv::Mat &image) {
     }
   }
 
-  // cv::Mat img2 = image.clone();
-  // cv::drawKeypoints(image, matched_sample, img2);
-  // cv::imshow("Matches", img2);
-  // cv::waitKey(10);
+
+  // Solve Homography
+  cv::Mat inlier_mask, homography;
+  std::vector<cv::KeyPoint> inliers1, inliers2;
+  std::vector<cv::DMatch> inlier_matches;
+  cv::Rect estimate;
+  if (roi_set) {
+    for (int i = 0; i < matched_sample.size(); ++i) {
+      matched_sample[i].pt.x += prediction.x;
+      matched_sample[i].pt.y += prediction.y;
+    }
+  }
+
+  if (matched_image.size() >= 4) {
+    homography = cv::findHomography(
+      KeyToPoints(matched_image),
+      KeyToPoints(matched_sample),
+      cv::RANSAC,
+      ransac_thresh,
+      inlier_mask);
+  }
+
+  if (!homography.empty()) {
+    std::vector<cv::Point2f> positions, transformed_positions;
+    cv::Point2f point;
+
+    point.x = roi_center.x;
+    point.y = roi_center.y;
+    positions.push_back(point);
+    point.x = roi_center.x + 10;
+    point.y = roi_center.y + 10;
+    positions.push_back(point);
+    point.x = roi_center.x + 10;
+    point.y = roi_center.y - 10;
+    positions.push_back(point);
+    point.x = roi_center.x - 10;
+    point.y = roi_center.y + 10;
+    positions.push_back(point);
+    point.x = roi_center.x - 10;
+    point.y = roi_center.y - 10;
+    positions.push_back(point);
+    float old_width = 20;
+    float old_height = 20;
+    cv::perspectiveTransform(positions, transformed_positions, homography);
+
+    // update kalman filter with measurement
+    filter.GetStateEstimate(&estimate);
+    cv::Rect rec;
+    rec.x = transformed_positions[0].x - estimate.width/2;
+    rec.y = transformed_positions[0].y - estimate.height/2;
+
+    // average width change and height
+    float maxx = -std::numeric_limits<float>::infinity();
+    float minx =  std::numeric_limits<float>::infinity();
+    float maxy = -std::numeric_limits<float>::infinity();
+    float miny =  std::numeric_limits<float>::infinity();
+    for (int i = 1; i < 5; ++i) {
+      if (maxx < transformed_positions[i].x)
+        maxx = transformed_positions[i].x;
+      if (minx > transformed_positions[i].x)
+        minx = transformed_positions[i].x;
+      if (maxy < transformed_positions[i].y)
+        maxy = transformed_positions[i].y;
+      if (miny > transformed_positions[i].y)
+        miny = transformed_positions[i].y;
+    }
+    float new_width  = maxx - minx;
+    float new_height = maxy - miny;
+
+    float width_change_ratio  = new_width / old_width;
+    float height_change_ratio = new_height / old_height;
+    rec.width  = bounding.width * width_change_ratio;
+    rec.height = bounding.height * height_change_ratio;
+
+    filter.MeasurementUpdate(rec);
+    filter.GetStateEstimate(&estimate);
+
+    cv::Mat img2 = image.clone();
+    cv::rectangle(img2, 
+      cv::Point(estimate.x, estimate.y),
+      cv::Point(estimate.x + estimate.width, estimate.y + estimate.height),
+      cv::Scalar(0,255,80),
+      3);
+    cv::circle(img2, transformed_positions[0], 3, cv::Scalar(50,255,50), 4);
+    cv::imshow("Tracked", img2);
+
+  } else {
+    LOG_INFO("Homography not found!");
+    // object not found in this frame update Kalman filter  and estimate state
+    filter.Update();
+
+    filter.GetStateEstimate(&estimate);
+    cv::Mat img2 = image.clone();
+    cv::rectangle(img2, 
+      cv::Point(estimate.x, estimate.y),
+      cv::Point(estimate.x + estimate.width, estimate.y + estimate.height),
+      cv::Scalar(0,255,80),
+      3);
+    cv::imshow("Tracked", img2);
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// Kalman2DTracker ///////////////////////////////
@@ -72,12 +201,12 @@ void Kalman2DTracker::InitializeFilter(const cv::Rect &measurement) {
   bounding_filter.init(4, 2, 0);
 
   // Set Transition Matrices
-  position_filter.transitionMatrix = *(cv::Mat_<float>(4, 4) <<
+  position_filter.transitionMatrix = (cv::Mat_<float>(4, 4) <<
     1, 0, 1, 0,
     0, 1, 0, 1,
     0, 0, 1, 0,
     0, 0, 0, 1);
-  bounding_filter.transitionMatrix = *(cv::Mat_<float>(4, 4) <<
+  bounding_filter.transitionMatrix = (cv::Mat_<float>(4, 4) <<
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -89,11 +218,11 @@ void Kalman2DTracker::InitializeFilter(const cv::Rect &measurement) {
 
   // set Process Noise Cov
   cv::setIdentity(position_filter.processNoiseCov, cv::Scalar(0.001));
-  cv::setIdentity(bounding_filter.processNoiseCov, cv::Scalar(0.0001));
+  cv::setIdentity(bounding_filter.processNoiseCov, cv::Scalar(0.00001));
 
   // set Measurement Noise Covariance
-  cv::setIdentity(position_filter.measurementNoiseCov, cv::Scalar(0.1));
-  cv::setIdentity(bounding_filter.measurementNoiseCov, cv::Scalar(0.01));
+  cv::setIdentity(position_filter.measurementNoiseCov, cv::Scalar(0.5));
+  cv::setIdentity(bounding_filter.measurementNoiseCov, cv::Scalar(0.001));
 
   // set Error Covariance Post
   cv::setIdentity(position_filter.errorCovPost, cv::Scalar(.1));
@@ -127,8 +256,16 @@ void Kalman2DTracker::MeasurementUpdate(const cv::Rect &measurement) {
   state_position_estimate = position_filter.correct(position);
   state_bounding_estimate = bounding_filter.correct(bounding);
 
-  state_position_prediction = position_filter.predict(position);
-  state_bounding_prediction = bounding_filter.predict(bounding);
+  state_position_prediction = position_filter.predict();
+  state_bounding_prediction = bounding_filter.predict();
+}
+
+void Kalman2DTracker::Update() {
+  state_position_estimate = state_position_prediction;
+  state_bounding_estimate = state_bounding_prediction;
+
+  state_position_prediction = position_filter.predict();
+  state_bounding_prediction = bounding_filter.predict();
 }
 
 void Kalman2DTracker::GetStatePrediction(cv::Rect *measurement) {
@@ -166,6 +303,12 @@ QrTracker::~QrTracker() {}
 QrObjectsTrack::QrObjectsTrack() {}
 QrObjectsTrack::~QrObjectsTrack() {}
 
+uint32_t QrObjectsTrack::Init() {
+
+}
+bool QrObjectsTrack::UpdateFrame(cv::Mat image) {
+
+}
 bool QrObjectsTrack::GetObject(std::string object, std::string &object_id) {
   return false;
 }

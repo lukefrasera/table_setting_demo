@@ -3,7 +3,7 @@
 
   <arg if="$(arg use-pr2)" name="camera_topic" default="/head_mount_kinect/rgb/image_raw"/>
   <arg unless="$(arg use-pr2)" name="camera_topic" default="/usb_cam/image_raw"/>
-  <include unless="$(arg use-pr2)" file="$(find usb_cam)/launch/usb_cam-test.launch" />
+  <include unless="$(arg use-pr2)" file="$(find table_setting_demo)/launch/webcam.launch" />
 
 
   <arg name="image_file" default="test_image.jpg"/>
@@ -13,5 +13,6 @@
     <param name="camera_topic" value="$(arg camera_topic)" />
     <param name="image_file" value="$(arg image_file)" />
     <rosparam file="$(arg folder)/bbox.yaml"/>
+    <param name="folder" value="$(arg folder)"/>
   </node>
 </launch>

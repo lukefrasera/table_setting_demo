@@ -62,7 +62,12 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
   if (!local_nh.getParam("image_file", image_filename)) {
     ROS_ERROR("Image File parameter missing!");
   }
-  cv::Mat image = cv::imread(image_filename.c_str());
+  std::string folder_str;
+  if (!local_nh.getParam("folder", folder_str)) {
+    ROS_ERROR("No image Folder!");
+  }
+
+  cv::Mat image = cv::imread((folder_str +"/"+ image_filename).c_str());
   if (!image.data) {
     ROS_ERROR("Image: [%s] didn't load", image_filename.c_str());
   }

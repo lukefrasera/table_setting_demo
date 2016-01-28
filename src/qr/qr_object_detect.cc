@@ -213,20 +213,33 @@ void Kalman2DTracker::InitializeFilter(const cv::Rect &measurement) {
     0, 0, 0, 1);
 
   // set measurement Matrices
-  cv::setIdentity(position_filter.measurementMatrix, cv::Scalar(1));
-  cv::setIdentity(bounding_filter.measurementMatrix, cv::Scalar(1));
+  cv::Size size;
+  size = position_filter.measurementMatrix.size();
+  position_filter.measurementMatrix = cv::Mat::eye(size, CV_32F) * 1;
+
+  size = bounding_filter.measurementMatrix.size();
+  bounding_filter.measurementMatrix = cv::Mat::eye(size, CV_32F) * 1;
 
   // set Process Noise Cov
-  cv::setIdentity(position_filter.processNoiseCov, cv::Scalar(0.001));
-  cv::setIdentity(bounding_filter.processNoiseCov, cv::Scalar(0.00001));
+  size = position_filter.processNoiseCov.size();
+  position_filter.processNoiseCov = cv::Mat::eye(size, CV_32F) * 0.001;
+
+  size = bounding_filter.processNoiseCov.size();
+  bounding_filter.processNoiseCov = cv::Mat::eye(size, CV_32F) * 0.00001;
 
   // set Measurement Noise Covariance
-  cv::setIdentity(position_filter.measurementNoiseCov, cv::Scalar(0.5));
-  cv::setIdentity(bounding_filter.measurementNoiseCov, cv::Scalar(0.001));
+  size = position_filter.measurementNoiseCov.size();
+  position_filter.measurementNoiseCov = cv::Mat::eye(size, CV_32F) * 0.5;
+
+  size = bounding_filter.measurementNoiseCov.size();
+  bounding_filter.measurementNoiseCov = cv::Mat::eye(size, CV_32F) * 0.001;
 
   // set Error Covariance Post
-  cv::setIdentity(position_filter.errorCovPost, cv::Scalar(.1));
-  cv::setIdentity(bounding_filter.errorCovPost, cv::Scalar(.1));
+  size = position_filter.errorCovPost.size();
+  position_filter.errorCovPost = cv::Mat::eye(size, CV_32F) * .1;
+
+  size = bounding_filter.errorCovPost.size();
+  bounding_filter.errorCovPost = cv::Mat::eye(size, CV_32F) * .1;
 
   // Initialize state
   position_filter.statePre.at<float>(0) = measurement.x + measurement.width/2;

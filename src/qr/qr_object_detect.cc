@@ -319,8 +319,7 @@ QrObjectsTrack::~QrObjectsTrack() {}
 uint32_t QrObjectsTrack::Init() {
 
 }
-bool QrObjectsTrack::UpdateFrame(cv::Mat image) {
-
+bool QrObjectsTrack::UpdateFrame(const cv::Mat &image) {
 }
 bool QrObjectsTrack::GetObject(std::string object, std::string &object_id) {
   return false;

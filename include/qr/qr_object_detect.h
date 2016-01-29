@@ -74,9 +74,11 @@ class QrObjectsTrack {
   virtual ~QrObjectsTrack();
 
   uint32_t Init();
-  bool UpdateFrame(cv::Mat image);
+  bool UpdateFrame(const cv::Mat &image);
   bool GetObject(std::string object, std::string &object_id);
   bool ObjectInView(std::string object);
+ private:
+  cv::Ptr<cv::Tracker> tracker;
 };
 }  // namespace qr
 #endif  // QR_OBJECT_DETECT_H_

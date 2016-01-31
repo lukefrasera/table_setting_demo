@@ -165,7 +165,6 @@ if (${BUILD_TABLE_SETTING_DEMO})
   target_link_libraries(table_setting_demo
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
-    quirc
   )
 
   if (NOT ${QR_FOUND})
@@ -182,7 +181,7 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
-    
+    quirc
   )
   add_dependencies(table_setting_demo
     table_setting_demo_generate_messages_cpp

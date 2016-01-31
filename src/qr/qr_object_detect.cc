@@ -316,11 +316,47 @@ QrTracker::~QrTracker() {}
 QrObjectsTrack::QrObjectsTrack() {}
 QrObjectsTrack::~QrObjectsTrack() {}
 
-uint32_t QrObjectsTrack::Init() {
+uint32_t QrObjectsTrack::Init(
+    const char *camera_topic,
+    std::vector<std::string> object_list,
+    cv::Mat image) {
+  // cv::TrackerKCF::Params params;
+  // params.desc_pca = cv::TrackerKCF::GRAY | cv::TrackerKCF::CN;
+  // params.desc_npca = 0;
+  // params.compress_feature = true;
+  // params.compressed_size = 2;
+  // params.resize = true;
+  const char *window = "TestSelection";
+  tracker = new cv::MultiTracker("KCF");
+  cv::namedWindow(window);
+
+  std::vector<cv::Rect2d> rois(object_list.size());
+  for (int i = 0; i < object_list.size(); ++i) {
+    cv::Mat text_image = image.clone();
+    cv::putText(
+      text_image,
+      object_list[i],
+      cv::Point(10,50),
+      cv::FONT_HERSHEY_PLAIN,
+      3,
+      cv::Scalar(10, 200, 50),
+      3);
+    rois[i] = cv::selectROI(window, text_image);
+  }
+  cv::destroyWindow(window);
+
+  // Initialize the trackers to the ROIs
+  tracker->add(image, rois);
 
 }
 bool QrObjectsTrack::UpdateFrame(const cv::Mat &image) {
+  tracker->update(image);
 }
+
+std::vector<cv::Rect2d> QrObjectsTrack::GetTrackedROIs() {
+  return tracker->objects;
+}
+void QrObjectsTrack::InitializeTrack(cv::Rect2d roi) {}
 bool QrObjectsTrack::GetObject(std::string object, std::string &object_id) {
   return false;
 }

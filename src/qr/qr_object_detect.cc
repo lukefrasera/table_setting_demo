@@ -327,7 +327,7 @@ uint32_t QrObjectsTrack::Init(
   // params.compressed_size = 2;
   // params.resize = true;
   const char *window = "TestSelection";
-  tracker = new cv::MultiTracker("KCF");
+  tracker = new cv::MultiTracker("TLD");
   cv::namedWindow(window);
 
   std::vector<cv::Rect2d> rois(object_list.size());

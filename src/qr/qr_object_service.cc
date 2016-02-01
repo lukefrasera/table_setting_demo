@@ -51,16 +51,16 @@ class QrObjectService {
 
 QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
   static const char *object_str[] = {
-    "neutral",
-    "placemat",
-    // "cup",
-    // "plate",
-    // "fork",
-    // "spoon",
-    // "knife",
-    // "bowl",
-    // "soda",
-    // "wineglass"
+    // "neutral",
+    // "placemat",
+    "cup",
+    "plate",
+    "fork",
+    "spoon",
+    "knife",
+    "bowl",
+    "soda",
+    "wineglass"
   };
   object_list = std::vector<std::string>(object_str,
     object_str + sizeof(object_str) / sizeof(char*));
@@ -249,10 +249,16 @@ cv::Mat MaskTrackedROIs(const cv::Mat &image, std::vector<cv::Rect2d> rois) {
   return img;
 }
 
+static cv::Scalar randomColor(cv::RNG &rng) {
+  uint32_t icolor = rng;
+  return cv::Scalar(icolor&255, (icolor>>8)&255, (icolor>>16)&255);
+}
+
 bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   // cv::Rect roi;
   // cv::Mat qr_image;
   cv::Mat img;
+  cv::RNG rng( 0xFFFFFFFF );
   // masked_image = MaskTrackedROIs(image, rois);
   // if (qr::QRDetectIdentifiers(masked_image, &roi, qr_image)) {
   //   // Initialize new track
@@ -264,7 +270,15 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   img = image.clone();
   std::vector<cv::Rect2d> rois = object_detector.GetTrackedROIs();
   for (int i = 0; i < rois.size(); ++i) {
-    cv::rectangle(img, rois[i], cv::Scalar(10,100,200), 4);
+    cv::rectangle(img, rois[i], randomColor(rng), 4);
+    
+    cv::putText(img,
+      object_list[i].c_str(),
+      cv::Point(rois[i].x, rois[i].y-3),
+      cv::FONT_HERSHEY_SIMPLEX,
+      .7,
+      randomColor(rng),
+      2);
   }
   cv::imshow("OVERLAY", img);
   cv::waitKey(10);

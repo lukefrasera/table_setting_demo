@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   message_generation
+  geometry_msgs
 )
 if ($ENV{ROBOT} MATCHES "pr2")
   option(BUILD_TABLE_SETTING_DEMO "build table setting demo" OFF)
@@ -20,6 +21,7 @@ if (${BUILD_TABLE_SETTING_DEMO})
   find_package(catkin REQUIRED COMPONENTS
     robotics_task_tree_eval
     remote_mutex
+    tabletop_segmenter
   )
 endif (${BUILD_TABLE_SETTING_DEMO})
 find_package(Boost REQUIRED COMPONENTS 
@@ -48,6 +50,7 @@ add_service_files(
   pick_and_place_state.srv
   object_request.srv
   object_position.srv
+  ObjectTransformation.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -61,6 +64,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
+  geometry_msgs
 )
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
@@ -167,6 +171,21 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${Boost_LIBRARIES}
   )
 
+  # BUILD OBJECT TRANSFORMATION service
+  add_executable(object_trans_service
+    src/3d_object_transformation_service/3d_object_trans_service.cc
+    src/3d_object_transformation_service/3d_object_transformation_service.cc
+  )
+  target_link_libraries(object_trans_service
+    ${Boost_LIBRARIES}
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+  )
+
+  add_dependencies(object_trans_service
+    table_setting_demo_generate_messages_cpp
+  )
+
   if (NOT ${QR_FOUND})
     message( FATAL_ERROR "QR Library not found cannot build table demo")
   endif()
@@ -181,7 +200,6 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
-    quirc
   )
   add_dependencies(table_setting_demo
     table_setting_demo_generate_messages_cpp

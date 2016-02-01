@@ -8,7 +8,7 @@ Gripper::Gripper(){
   gripper_client_ = new GripperClient("r_gripper_controller/gripper_action", true);
 
   //wait for the gripper action server to come up 
-  while(!grippexxr_client_->waitForServer(ros::Duration(5.0))){
+  while(!gripper_client_->waitForServer(ros::Duration(5.0))){
     ROS_INFO("Waiting for the r_gripper_controller/gripper_action"
              "action server to come up");
   }
@@ -61,12 +61,12 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
     "fork",
     "spoon",
     "knife"
-  }
+  };
   const char *static_object_str[] = {
     "neutral",
     "placemat",
     "wineglass"
-  }
+  };
   const char *object_str[] = {
     "neutral",
     "placemat",

@@ -82,7 +82,7 @@ class PickPlace {
   ros::NodeHandle nh_;
   std::vector<std::string> objects_;
   std::vector<std::string> static_objects_;
-  std::vector<std::string> dynamiv_obejcts_;
+  std::vector<std::string> dynamiv_objects_;
   std::string arm_;
   std::map<std::string, PickPlaceGoal> object_goal_map_;
   actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;

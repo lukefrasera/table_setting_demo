@@ -1,4 +1,6 @@
 #include "pick_and_place/pr2_pick_and_place_service.h"
+#include "table_setting_demo/object_position.h"
+#include "table_setting_demo/ObjectTransformation.h"
 namespace pr2 {
 //Open the gripper
 Gripper::Gripper(){
@@ -195,7 +197,7 @@ bool PickPlace::PickAndPlacecheck(
   // Check if Object is correct
   // check if Pick and Place is Done
   res.success = (state_ == PLACED);
-  if (state == PLACED) {
+  if (state_ == PLACED) {
     state_ = IDLE;
   }
   return true;

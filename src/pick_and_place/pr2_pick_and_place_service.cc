@@ -199,7 +199,7 @@ bool PickPlace::PickAndPlacecheck(
   return true;
 }
 
-bool PickAndPlaceState(
+bool PickPlace::PickAndPlaceState(
     table_setting_demo::pick_and_place_state::Request &req,
     table_setting_demo::pick_and_place_state::Response &res) {
   res.state = state_;

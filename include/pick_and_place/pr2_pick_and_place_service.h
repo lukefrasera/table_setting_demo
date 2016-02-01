@@ -8,6 +8,7 @@
 #include <pr2_controllers_msgs/Pr2GripperCommandAction.h>
 #include <tf/transform_listener.h>
 #include <table_setting_demo/pick_and_place.h>
+#include <table_setting_demo/pick_and_place_state.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

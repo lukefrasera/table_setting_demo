@@ -74,6 +74,7 @@ class PickPlace {
     Point_t position,
     Point_t orientation);
   void SaveCalibration(std::string filename);
+  void PickPlace::PickAndPlaceImpl(std::string object);
 
  private:
   bool SendGoal(MoveArmGoal_t goal);
@@ -82,7 +83,7 @@ class PickPlace {
   ros::NodeHandle nh_;
   std::vector<std::string> objects_;
   std::vector<std::string> static_objects_;
-  std::vector<std::string> dynamiv_objects_;
+  std::vector<std::string> dynamic_objects_;
   std::string arm_;
   std::map<std::string, PickPlaceGoal> object_goal_map_;
   actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;

@@ -116,6 +116,11 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
       break;
     }
   }
+  if (dynamic) {
+    ROS_INFO("Object Is dynamic");
+  } else {
+    ROS_INFO("Object Is Static");
+  }
   state_ = NEUTRAL;
   r_gripper_.Open();
   // Move to Neutral Start

@@ -116,7 +116,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
       break;
     }
   }
-  state_ = NUETRAL;
+  state_ = NEUTRAL;
   r_gripper_.Open();
   // Move to Neutral Start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
@@ -156,20 +156,17 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   // Move to Neutral start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
-    res.success = false;
     return true;
   }
   state_ = PLACING;
   object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
-    res.success = false;
     return true;
   }
 
   // obejct place
   object_goal_map_[object.c_str()].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_[object.c_str()].place_pose)) {
-    res.success = false;
     return true;
   }
   r_gripper_.Open();
@@ -177,7 +174,6 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
 
    object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
-    res.success = false;
     return true;
   }
 }

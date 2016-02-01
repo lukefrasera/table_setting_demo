@@ -74,7 +74,7 @@ class PickPlace {
     Point_t position,
     Point_t orientation);
   void SaveCalibration(std::string filename);
-  void PickPlace::PickAndPlaceImpl(std::string object);
+  void PickAndPlaceImpl(std::string object);
 
  private:
   bool SendGoal(MoveArmGoal_t goal);

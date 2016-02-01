@@ -54,6 +54,19 @@ void Gripper::Close(){
 
 PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
   arm_ = arm;
+  const char *dynamic_object_str[] = {
+    "cup",
+    "bowl",
+    "soda",
+    "fork",
+    "spoon",
+    "knife"
+  }
+  const char *static_object_str[] = {
+    "neutral",
+    "placemat",
+    "wineglass"
+  }
   const char *object_str[] = {
     "neutral",
     "placemat",
@@ -68,6 +81,13 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
   };
   objects_ = std::vector<std::string>(object_str,
     object_str + sizeof(object_str) / sizeof(char*));
+
+  static_objects_ = std::vector<std::string>(static_object_str,
+    static_object_str + sizeof(static_object_str) / sizeof(char*));
+
+  dynamic_objects_ = std::vector<std::string>(dynamic_object_str,
+    dynamic_object_str + sizeof(dynamic_object_str) / sizeof(char*));
+
   for (uint32_t i = 0; i < objects_.size(); ++i) {
     printf("Object: %s\n", objects_[i].c_str());
   }
@@ -78,31 +98,66 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
 
 PickPlace::~PickPlace() {}
 
-bool PickPlace::PickAndPlaceObject(
-    table_setting_demo::pick_and_place::Request &req,
-    table_setting_demo::pick_and_place::Response &res) {
-  printf("Picking up Object: %s\n", req.object.c_str());
+void PickAndPlaceThread(PickPlace *manipulation, std::string object) {
+  manipulation->PickAndPlaceImpl(object);
+}
+
+void PickPlace::PickAndPlaceImpl(std::string object) {
+  printf("Picking up Object: %s\n", object.c_str());
+  // check if dyanamic or static object
+  table_setting_demo::object_position pos_msg;
+  table_setting_demo::ObjectTransformation pose_msg;
+  bool dynamic = true;
+  for (int i = 0; i < static_objects_.size(); ++i) {
+    if (object == static_objects_[i]) {
+      dynamic = false;
+      break;
+    }
+  }
+  state_ = NUETRAL;
   r_gripper_.Open();
   // Move to Neutral Start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
-    res.success = false;
     return true;
   }
   // Move to Object Pick location
-  object_goal_map_[req.object.c_str()].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
-  if (!SendGoal(object_goal_map_[req.object.c_str()].pick_pose)) {
-    res.success = false;
-    return true;
-  }
-  r_gripper_.Close();
+  state_ = APPROACHING;
 
+  // Check if Object is dynamic or static
+  if (dynamic) {
+    // request object tracked position
+    pos_msg.request.object_id = object;
+    if (!ros::service::call("qr_get_object_position", pos_msg)) {
+      ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
+    }
+    // Request object 3D transform
+    pose_msg.request.x = pos_msg.response.position[0];
+    pose_msg.request.y = pos_msg.response.position[1];
+    pose_msg.request.w = pos_msg.response.position[2];
+    pose_msg.request.h = pos_msg.response.position[3];
+    pose_msg.request.object = object;
+    if (!ros::service::call("object_transformation", pose_msg)) {
+      ROS_ERROR("Service: [%s] not available!", "object_transformation");
+    }
+    // Transform pose into world space
+
+  } else {
+    object_goal_map_[object.c_str()].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
+    if (!SendGoal(object_goal_map_[object.c_str()].pick_pose)) {
+      return true;
+    }
+  }
+  state_ = PICKING;
+  r_gripper_.Close();
+  state_ = PICKED;
   // Move to Neutral start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     res.success = false;
     return true;
   }
+  state_ = PLACING;
   object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
     res.success = false;
@@ -110,19 +165,26 @@ bool PickPlace::PickAndPlaceObject(
   }
 
   // obejct place
-  object_goal_map_[req.object.c_str()].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
-  if (!SendGoal(object_goal_map_[req.object.c_str()].place_pose)) {
+  object_goal_map_[object.c_str()].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
+  if (!SendGoal(object_goal_map_[object.c_str()].place_pose)) {
     res.success = false;
     return true;
   }
   r_gripper_.Open();
+  state_ = PLACED;
 
    object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
     res.success = false;
     return true;
   }
+}
 
+bool PickPlace::PickAndPlaceObject(
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res) {
+  
+  boost::thread(&PickAndPlaceThread, this, req.object);
   res.success = true;
   return true;
 }
@@ -132,7 +194,10 @@ bool PickPlace::PickAndPlacecheck(
     table_setting_demo::pick_and_place::Response &res) {
   // Check if Object is correct
   // check if Pick and Place is Done
-  res.success = move_arm_.isDone();
+  res.success = (state_ == PLACED);
+  if (state == PLACED) {
+    state_ = IDLE;
+  }
   return true;
 }
 
@@ -243,10 +308,12 @@ arm_navigation_msgs::MoveArmGoal PickPlace::GetArmPoseFromPoints(std::string fra
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].header.stamp = ros::Time::now();
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].header.frame_id = frame_id.c_str();
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].link_name = link.c_str();
+
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].orientation.x = orientation.x;
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].orientation.y = orientation.y;
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].orientation.z = orientation.z;
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].orientation.w = orientation.w;
+
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].absolute_roll_tolerance = 0.08;
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].absolute_pitch_tolerance = 0.08;
   goal.motion_plan_request.goal_constraints.orientation_constraints[0].absolute_yaw_tolerance = 0.08;

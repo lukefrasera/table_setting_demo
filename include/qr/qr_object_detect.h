@@ -83,6 +83,7 @@ class QrObjectsTrack {
  private:
   cv::Ptr<cv::MultiTracker> tracker;
   std::vector<cv::Rect2d> tracking_regions;
+  std::vector<std::string> object_list_;
 };
 }  // namespace qr
 #endif  // QR_OBJECT_DETECT_H_

@@ -44,6 +44,9 @@ class QrObjectService {
   // cv::Ptr<qr::Tracker> orb_tracker;
   std::vector<std::string> object_list;
 
+  ros::ServiceServer get_objects, object_position;
+  bool processing;
+
 };
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -54,13 +57,13 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
     // "neutral",
     // "placemat",
     "cup",
-    "plate",
+    // "plate",
     "fork",
     "spoon",
     "knife",
-    "bowl",
+    // "bowl",
     "soda",
-    "wineglass"
+    // "wineglass"
   };
   object_list = std::vector<std::string>(object_str,
     object_str + sizeof(object_str) / sizeof(char*));
@@ -78,7 +81,14 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
     this);
 
 
-
+  get_objects = nh->advertiseService(
+    "qr_object_inview",
+    &QrObjectService::GetQrObject,
+    this);
+  object_position = nh->advertiseService(
+    "qr_get_object_position",
+    &QrObjectService::GetQrPosition,
+    this);
   // load first frame into akaze tracker
   // std::string image_filename;
   // if (!local_nh.getParam("image_file", image_filename)) {
@@ -136,6 +146,7 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
     ROS_ERROR("cv_bridge exeception: %s", e.what());
   }
   object_detector.Init(camera_topic.c_str(),object_list, img_ptr->image);
+  processing = false;
 }
 
 QrObjectService::~QrObjectService() {}
@@ -149,7 +160,9 @@ void QrObjectService::CameraImageCallback(
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-  QrDetectionProcess(image_ptr->image);
+  if (!processing) {
+    QrDetectionProcess(image_ptr->image);
+  }
 }
 
 // float CvPointDist(cv::Point2f A, cv::Point2f B) {
@@ -255,6 +268,7 @@ static cv::Scalar randomColor(cv::RNG &rng) {
 }
 
 bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
+  processing = true;
   // cv::Rect roi;
   // cv::Mat qr_image;
   cv::Mat img;
@@ -283,6 +297,7 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
   cv::imshow("OVERLAY", img);
   cv::waitKey(10);
   object_detector.UpdateFrame(image);
+  processing = false;
   return true;
 }
 
@@ -314,6 +329,23 @@ bool QrObjectService::GetQrObject(
 bool QrObjectService::GetQrPosition(
     table_setting_demo::object_position::Request &req,
     table_setting_demo::object_position::Response &res) {
+  int index = -1;
+  for (int i = 0; i < object_list.size(); ++i) {
+    // find object track index
+    if (req.object_id == object_list[i]) {
+      index = i;
+      break;
+    }
+  }
+  if (index == -1) {
+    ROS_ERROR("object not being tracked - [%s]", req.object_id.c_str());
+  } else {
+    cv::Rect2d position = object_detector.GetTrackedROIs()[index];
+    res.position.push_back(position.x);
+    res.position.push_back(position.y);
+    res.position.push_back(position.width);
+    res.position.push_back(position.height);
+  }
   return true;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -326,6 +358,7 @@ int main(int argc, char *argv[]) {
   ros::NodeHandle nh;
   QrObjectService qr_service(&nh);
 
-  ros::spin();
+  ros::MultiThreadedSpinner spinner(4);
+  spinner.spin();
   return 0;
 }

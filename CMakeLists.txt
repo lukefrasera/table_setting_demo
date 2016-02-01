@@ -23,6 +23,16 @@ if (${BUILD_TABLE_SETTING_DEMO})
     remote_mutex
     tabletop_segmenter
   )
+  find_package(PCL REQUIRED COMPONENTS
+    common
+    io
+  )
+  INCLUDE_DIRECTORIES(${PCL_INCLUDE_DIRS})
+  link_directories(${PCL_LIBRARY_DIRS})
+  add_definitions(${PCL_DEFINITIONS})
+
+  find_package(Eigen3 REQUIRED)
+  INCLUDE_DIRECTORIES(${EIGEN_INVLUDE_DIR})
 endif (${BUILD_TABLE_SETTING_DEMO})
 find_package(Boost REQUIRED COMPONENTS 
   date_time
@@ -160,6 +170,8 @@ if (${BUILD_TABLE_SETTING_DEMO})
     cv_bridge
     robotics_task_tree_eval
     remote_mutex
+    pcl_ros
+    tf
   )
 
   add_executable(table_setting_demo
@@ -180,6 +192,8 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${Boost_LIBRARIES}
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
+    ${PCL_COMMON_LIBRARIES}
+    ${PCL_IO_LIBRARIES}
   )
 
   add_dependencies(object_trans_service

@@ -326,6 +326,7 @@ uint32_t QrObjectsTrack::Init(
   // params.compress_feature = true;
   // params.compressed_size = 2;
   // params.resize = true;
+  object_list_ = object_list;
   const char *window = "TestSelection";
   tracker = new cv::MultiTracker("TLD");
   cv::namedWindow(window);
@@ -358,9 +359,19 @@ std::vector<cv::Rect2d> QrObjectsTrack::GetTrackedROIs() {
 }
 void QrObjectsTrack::InitializeTrack(cv::Rect2d roi) {}
 bool QrObjectsTrack::GetObject(std::string object, std::string &object_id) {
+  for (int i = 0; i < object_list_.size(); ++i) {
+    if (object.compare(object_list_[i]) == 0) {
+      object_id = object;
+      return true;
+    }
+  }
   return false;
 }
 bool QrObjectsTrack::ObjectInView(std::string object) {
+  for (int i = 0; i < object_list_.size(); ++i) {
+    if (object.compare(object_list_[i]) == 0)
+      return true;
+  }
   return false;
 }
 }  // namespace qr

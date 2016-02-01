@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     &pp);
   ros::ServiceServer service_check = nh.advertiseService(
     "pick_and_place_check",
-    &pr2::PickPlace::PickAndPlaceCheck,
+    &pr2::PickPlace::PickAndPlacecheck,
     &pp);
   ros::ServiceServer service_state = nh.advertiseService(
     "pick_and_place_state",

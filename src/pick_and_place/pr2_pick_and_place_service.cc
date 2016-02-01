@@ -121,7 +121,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   // Move to Neutral Start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
-    return true;
+    return;
   }
   // Move to Object Pick location
   state_ = APPROACHING;
@@ -147,7 +147,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   } else {
     object_goal_map_[object.c_str()].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
     if (!SendGoal(object_goal_map_[object.c_str()].pick_pose)) {
-      return true;
+      return;
     }
   }
   state_ = PICKING;
@@ -156,25 +156,25 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   // Move to Neutral start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
-    return true;
+    return;
   }
   state_ = PLACING;
   object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
-    return true;
+    return;
   }
 
   // obejct place
   object_goal_map_[object.c_str()].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_[object.c_str()].place_pose)) {
-    return true;
+    return;
   }
   r_gripper_.Open();
   state_ = PLACED;
 
    object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
-    return true;
+    return;
   }
 }
 
@@ -200,8 +200,8 @@ bool PickPlace::PickAndPlacecheck(
 }
 
 bool PickAndPlaceState(
-    table_setting_demo::pick_and_place::Request &req,
-    table_setting_demo::pick_and_place::Response &res) {
+    table_setting_demo::pick_and_place_state::Request &req,
+    table_setting_demo::pick_and_place_state::Response &res) {
   res.state = state_;
   return true;
 }

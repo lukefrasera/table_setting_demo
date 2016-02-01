@@ -33,10 +33,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace pr2 {
 typedef enum STATE {
   APPROACHING = 0,
+  PICKING,
   PICKED,
   PLACING,
   PLACED,
-  NEUTRAL
+  NEUTRAL,
+  IDLE
 } STATE_t;
 }  // namespace pr2
 

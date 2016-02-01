@@ -157,6 +157,9 @@ if (${ROS_VERSION} MATCHES "groovy")
     target_link_libraries(pr2_pick_service
       ${catkin_LIBRARIES}
     )
+    add_dependencies(pr2_pick_service
+    table_setting_demo_generate_messages_cpp
+  )
   endif (${BUILD_PR2_PICKPLACE})
 endif (${ROS_VERSION} MATCHES "groovy")
 ################################################################################

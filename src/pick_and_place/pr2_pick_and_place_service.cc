@@ -71,7 +71,8 @@ PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
     "soda",
     "neutral",
     "placemat",
-    "wineglass"
+    "wineglass",
+    "plate"
   };
   const char *object_str[] = {
     "neutral",
@@ -282,7 +283,7 @@ void PickPlace::CalibrateObjects() {
       }
     }
     printf(
-      "Move %s limb to: %s picking location and Press Any Key and Enter\n",
+      "Move [%s] limb to: [%s] picking location and Press Any Key and Enter\n",
       arm_.c_str(),
       objects_[i].c_str());
     std::cin >> c;
@@ -297,13 +298,13 @@ void PickPlace::CalibrateObjects() {
       if (!ros::service::call("qr_get_object_position", pos_msg)) {
         ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
       }
-      LOG_INFO("HERE");
       // Request object 3D transform
       pose_msg.request.x = pos_msg.response.position[0];
       pose_msg.request.y = pos_msg.response.position[1];
       pose_msg.request.w = pos_msg.response.position[2];
       pose_msg.request.h = pos_msg.response.position[3];
       pose_msg.request.object = objects_[i];
+      LOG_INFO("HERE");
       if (!ros::service::call("object_transformation", pose_msg)) {
         ROS_ERROR("Service: [%s] not available!", "object_transformation");
       }

@@ -166,14 +166,22 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
       ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
     }
     // Request object 3D transform
-    pose_msg.request.x = pos_msg.response.position[0];
-    pose_msg.request.y = pos_msg.response.position[1];
-    pose_msg.request.w = pos_msg.response.position[2];
-    pose_msg.request.h = pos_msg.response.position[3];
-    pose_msg.request.object = object;
-    if (!ros::service::call("object_transformation", pose_msg)) {
-      ROS_ERROR("Service: [%s] not available!", "object_transformation");
+    if (pos_msg.response.positions.size() > 0) {
+      pose_msg.request.x = pos_msg.response.position[0];
+      pose_msg.request.y = pos_msg.response.position[1];
+      pose_msg.request.w = pos_msg.response.position[2];
+      pose_msg.request.h = pos_msg.response.position[3];
+      pose_msg.request.object = object;
+
+      if (!ros::service::call("object_transformation", pose_msg)) {
+        ROS_ERROR("Service: [%s] not available!", "object_transformation");
+      }
+    } else {
+      pos_msg.response.transform.translation.x = 0;
+      pos_msg.response.transform.translation.y = 0;
+      pos_msg.response.transform.translation.z = 0;
     }
+
     // Transform pose into world space
     geometry_msgs::PoseStamped object_pose, world_pose;
     arm_navigation_msgs::MoveArmGoal pick_pose = object_goal_map_[object.c_str()].pick_pose;
@@ -299,14 +307,20 @@ void PickPlace::CalibrateObjects() {
         ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
       }
       // Request object 3D transform
-      pose_msg.request.x = pos_msg.response.position[0];
-      pose_msg.request.y = pos_msg.response.position[1];
-      pose_msg.request.w = pos_msg.response.position[2];
-      pose_msg.request.h = pos_msg.response.position[3];
-      pose_msg.request.object = objects_[i];
-      LOG_INFO("HERE");
-      if (!ros::service::call("object_transformation", pose_msg)) {
-        ROS_ERROR("Service: [%s] not available!", "object_transformation");
+      if (pos_msg.response.positions.size() > 0) {
+        pose_msg.request.x = pos_msg.response.position[0];
+        pose_msg.request.y = pos_msg.response.position[1];
+        pose_msg.request.w = pos_msg.response.position[2];
+        pose_msg.request.h = pos_msg.response.position[3];
+        pose_msg.request.object = object;
+
+        if (!ros::service::call("object_transformation", pose_msg)) {
+          ROS_ERROR("Service: [%s] not available!", "object_transformation");
+        }
+      } else {
+        pos_msg.response.transform.translation.x = 0;
+        pos_msg.response.transform.translation.y = 0;
+        pos_msg.response.transform.translation.z = 0;
       }
       LOG_INFO("HERE");
       geometry_msgs::PoseStamped world_pose, object_pose;

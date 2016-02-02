@@ -177,9 +177,9 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
         ROS_ERROR("Service: [%s] not available!", "object_transformation");
       }
     } else {
-      pose_msg.response.transform.translation.x = 0;
-      pose_msg.response.transform.translation.y = 0;
-      pose_msg.response.transform.translation.z = 0;
+      pose_msg.response.transform.transform.translation.x = 0;
+      pose_msg.response.transform.transform.translation.y = 0;
+      pose_msg.response.transform.transform.translation.z = 0;
     }
 
     // Transform pose into world space
@@ -318,9 +318,9 @@ void PickPlace::CalibrateObjects() {
           ROS_ERROR("Service: [%s] not available!", "object_transformation");
         }
       } else {
-        pose_msg.response.transform.translation.x = 0;
-        pose_msg.response.transform.translation.y = 0;
-        pose_msg.response.transform.translation.z = 0;
+        pose_msg.response.transform.transform.translation.x = 0;
+        pose_msg.response.transform.transform.translation.y = 0;
+        pose_msg.response.transform.transform.translation.z = 0;
       }
       LOG_INFO("HERE");
       geometry_msgs::PoseStamped world_pose, object_pose;

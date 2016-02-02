@@ -166,7 +166,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
       ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
     }
     // Request object 3D transform
-    if (pos_msg.response.positions.size() > 0) {
+    if (pos_msg.response.position.size() > 0) {
       pose_msg.request.x = pos_msg.response.position[0];
       pose_msg.request.y = pos_msg.response.position[1];
       pose_msg.request.w = pos_msg.response.position[2];
@@ -307,7 +307,7 @@ void PickPlace::CalibrateObjects() {
         ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
       }
       // Request object 3D transform
-      if (pos_msg.response.positions.size() > 0) {
+      if (pos_msg.response.position.size() > 0) {
         pose_msg.request.x = pos_msg.response.position[0];
         pose_msg.request.y = pos_msg.response.position[1];
         pose_msg.request.w = pos_msg.response.position[2];

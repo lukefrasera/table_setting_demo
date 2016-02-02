@@ -306,46 +306,46 @@ void waitKeyboard() {
   }
 }
 
+bool waitKeyboardYesNo() {
+  bool confirm = true;
+  while (true) {
+    int c = getch();
+    if (c == ' ')
+      break;
+    if (c == 10)
+      break;
+    if (c == 'n' || c == 'N')
+      confirm = false;
+  }
+  return confirm;
+}
+
 void PickPlace::CalibrateObjects() {
   char c;
   r_gripper_.Open();
-  for (uint32_t i = 0; i < objects_.size(); ++i) {
-    
-    bool dynamic = true;
-    for (int j = 0; j < static_objects_.size(); ++j) {
-      if (objects_[i] == static_objects_[j]) {
-        dynamic = false;
-        break;
-      }
-    }
+  bool prior_scene_view = false;
+  // Get all dynamic object position with clean view
+  printf("Would you like to pre-calibrate dynamic object positions?[Y/n]\n");
+  prior_scene_view = waitKeyboardYesNo();
+  std::map< std::string, geometry_msgs::Transform> dynamic_transforms;
+  if (prior_scene_view) {
+    // record scene object positions
+    printf("Remove arm from scene!\n");
+    waitKeyboard();
+    table_setting_demo::object_position pos_msg;
+    table_setting_demo::ObjectTransformation pose_msg;
 
-    if (!dynamic) {
-      printf(
-        "Move [%s] limb to: [%s] picking location and Press Enter\n",
-        arm_.c_str(),
-        objects_[i].c_str());
-      waitKeyboard();
-      object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
-    } else {
-      printf("Dyanamic Object! Move arm out of Kinect path! Then Press enter\n");
-      waitKeyboard();
-    }
-    // check if the object is dynamic
-    if (dynamic) {
-      // transform into object space
-      table_setting_demo::object_position pos_msg;
-      table_setting_demo::ObjectTransformation pose_msg;
-      pos_msg.request.object_id = objects_[i];
+    for (int i = 0; i < dynamic_objects_.size(); ++i) {
+      pos_msg.request.object_id = dynamic_objects_[i];
       if (!ros::service::call("qr_get_object_position", pos_msg)) {
-        ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
+        ROS_ERROR("ERROR: Service [%s] no available!", "qr_get_object_position");
       }
-      // Request object 3D transform
       if (pos_msg.response.position.size() > 0) {
         pose_msg.request.x = pos_msg.response.position[0];
         pose_msg.request.y = pos_msg.response.position[1];
         pose_msg.request.w = pos_msg.response.position[2];
         pose_msg.request.h = pos_msg.response.position[3];
-        pose_msg.request.object = objects_[i];
+        pose_msg.request.object = dynamic_objects_[i];
 
         if (!ros::service::call("object_transformation", pose_msg)) {
           ROS_ERROR("Service: [%s] not available!", "object_transformation");
@@ -356,12 +356,69 @@ void PickPlace::CalibrateObjects() {
         pose_msg.response.transform.transform.translation.z = 0;
       }
 
+      // store transformation to a list of dynamic_object transformations
+      dynamic_transforms[dynamic_objects_[i]] = pose_msg.response.transform.transform;
+    }
+  }
+
+  for (uint32_t i = 0; i < objects_.size(); ++i) {
+    
+    bool dynamic = true;
+    for (int j = 0; j < static_objects_.size(); ++j) {
+      if (objects_[i] == static_objects_[j]) {
+        dynamic = false;
+        break;
+      }
+    }
+
+    if (!dynamic || prior_scene_view) {
       printf(
         "Move [%s] limb to: [%s] picking location and Press Enter\n",
         arm_.c_str(),
         objects_[i].c_str());
       waitKeyboard();
       object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+    } else {
+      printf("Dyanamic Object [%s]! Move arm out of Kinect path! Then Press enter\n", objects_[i].c_str());
+      waitKeyboard();
+    }
+    // check if the object is dynamic
+    if (dynamic) {
+      table_setting_demo::object_position pos_msg;
+      table_setting_demo::ObjectTransformation pose_msg;
+      if (!prior_scene_view) {
+        // transform into object space
+        pos_msg.request.object_id = objects_[i];
+        if (!ros::service::call("qr_get_object_position", pos_msg)) {
+          ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
+        }
+        // Request object 3D transform
+        if (pos_msg.response.position.size() > 0) {
+          pose_msg.request.x = pos_msg.response.position[0];
+          pose_msg.request.y = pos_msg.response.position[1];
+          pose_msg.request.w = pos_msg.response.position[2];
+          pose_msg.request.h = pos_msg.response.position[3];
+          pose_msg.request.object = objects_[i];
+
+          if (!ros::service::call("object_transformation", pose_msg)) {
+            ROS_ERROR("Service: [%s] not available!", "object_transformation");
+          }
+        } else {
+          pose_msg.response.transform.transform.translation.x = 0;
+          pose_msg.response.transform.transform.translation.y = 0;
+          pose_msg.response.transform.transform.translation.z = 0;
+        }
+      } else {
+        pose_msg.response.transform.transform = dynamic_transforms[objects_[i]];
+      }
+      if (!prior_scene_view) {
+        printf(
+          "Move [%s] limb to: [%s] picking location and Press Enter\n",
+          arm_.c_str(),
+          objects_[i].c_str());
+        waitKeyboard();
+        object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+      }
 
       geometry_msgs::PoseStamped world_pose, object_pose;
       world_pose.pose.position =    object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;

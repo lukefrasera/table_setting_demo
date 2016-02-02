@@ -176,7 +176,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
     object_pose.pose.position = pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
     object_pose.pose.orientation = pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
 
-    TransformPoseLocalToWorld(object_pose, world_pose, pose_msg.transform);
+    TransformPoseLocalToWorld(object_pose, world_pose, pose_msg.response.transform);
 
     pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = world_pose.pose.position;
     pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = world_pose.pose.orientation;
@@ -304,15 +304,15 @@ void PickPlace::CalibrateObjects() {
       }
 
       geometry_msgs::PoseStamped world_pose, object_pose;
-      world_pose.pose.position =    object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
-      world_pose.pose.orientation = object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
+      world_pose.pose.position =    object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
+      world_pose.pose.orientation = object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
 
       // Transform pose
-      TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.transform);
+      TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.response.transform);
 
       // apply transform
-      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.pose.position;
-      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = object_pose.pose.orientation;
+      object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.pose.position;
+      object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = object_pose.pose.orientation;
     }
 
     r_gripper_.Close();

@@ -4,6 +4,8 @@
 #include "log.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <termios.h>
+#include <unistd.h>
 
 int getch() {
   static struct termios oldt, newt;

@@ -1,6 +1,7 @@
 #include "pick_and_place/pr2_pick_and_place_service.h"
 #include "table_setting_demo/object_position.h"
 #include "table_setting_demo/ObjectTransformation.h"
+#include "log.h"
 namespace pr2 {
 //Open the gripper
 Gripper::Gripper(){
@@ -296,6 +297,7 @@ void PickPlace::CalibrateObjects() {
       if (!ros::service::call("qr_get_object_position", pos_msg)) {
         ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
       }
+      LOG_INFO("HERE");
       // Request object 3D transform
       pose_msg.request.x = pos_msg.response.position[0];
       pose_msg.request.y = pos_msg.response.position[1];
@@ -305,17 +307,18 @@ void PickPlace::CalibrateObjects() {
       if (!ros::service::call("object_transformation", pose_msg)) {
         ROS_ERROR("Service: [%s] not available!", "object_transformation");
       }
-
+      LOG_INFO("HERE");
       geometry_msgs::PoseStamped world_pose, object_pose;
       world_pose.pose.position =    object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
       world_pose.pose.orientation = object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
-
+      LOG_INFO("HERE");
       // Transform pose
       TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.response.transform);
-
+      LOG_INFO("HERE");
       // apply transform
       object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.pose.position;
       object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = object_pose.pose.orientation;
+      LOG_INFO("HERE");
     }
 
     r_gripper_.Close();

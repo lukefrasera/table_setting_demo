@@ -2,6 +2,22 @@
 #include "table_setting_demo/object_position.h"
 #include "table_setting_demo/ObjectTransformation.h"
 #include "log.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+int getch() {
+  static struct termios oldt, newt;
+  tcgetattr( STDIN_FILENO, &oldt);           // save old settings
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON);                 // disable buffering      
+  tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+
+  int c = getchar();  // read character (non-blocking)
+
+  tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
+  return c;
+}
+
 namespace pr2 {
 //Open the gripper
 Gripper::Gripper(){
@@ -278,19 +294,6 @@ void PickPlace::PostParameters() {
   }
 }
 
-int getch() {
-  static struct termios oldt, newt;
-  tcgetattr( STDIN_FILENO, &oldt);           // save old settings
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON);                 // disable buffering      
-  tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
-
-  int c = getchar();  // read character (non-blocking)
-
-  tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
-  return c;
-}
-
 void waitKeyboard() {
   while (true) {
     int c = getch();
@@ -298,6 +301,7 @@ void waitKeyboard() {
       break;
     if (c == 13)
       break;
+    ros::Duration(.01).sleep();
   }
 }
 

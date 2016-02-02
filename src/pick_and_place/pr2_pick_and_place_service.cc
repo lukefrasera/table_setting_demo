@@ -108,9 +108,9 @@ void TransformPoseLocalToWorld(
   geometry_msgs::PoseStamped &input,
   geometry_msgs::PoseStamped &output,
   geometry_msgs::TransformStamped transform) {
-  output.pose.position.x = input.pose.position.x + transform.position.x;
-  output.pose.position.y = input.pose.position.y + transform.position.y;
-  output.pose.position.z = input.pose.position.z + transform.position.z;
+  output.pose.position.x = input.pose.position.x + transform.transform.position.x;
+  output.pose.position.y = input.pose.position.y + transform.transform.position.y;
+  output.pose.position.z = input.pose.position.z + transform.transform.position.z;
 
   output.pose.orientation = input.pose.orientation;
 }
@@ -119,9 +119,9 @@ void TransformPoseWorldToLocal(
   geometry_msgs::PoseStamped &input,
   geometry_msgs::PoseStamped &output,
   geometry_msgs::TransformStamped transform) {
-  output.pose.position.x = input.pose.position.x - transform.position.x;
-  output.pose.position.y = input.pose.position.y - transform.position.y;
-  output.pose.position.z = input.pose.position.z - transform.position.z;
+  output.pose.position.x = input.pose.position.x - transform.transform.position.x;
+  output.pose.position.y = input.pose.position.y - transform.transform.position.y;
+  output.pose.position.z = input.pose.position.z - transform.transform.position.z;
 
   output.pose.orientation = input.pose.orientation;
 }
@@ -174,12 +174,12 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
     arm_navigation_msgs::MoveArmGoal pick_pose = object_goal_map_[object.c_str()].pick_pose;
 
     object_pose.pose.position = pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
-    object_pose.pose.orientation = pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation;
+    object_pose.pose.orientation = pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
 
     TransformPoseLocalToWorld(object_pose, world_pose, pose_msg.transform);
 
     pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = world_pose.pose.position;
-    pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation = world_pose.pose.orientation;
+    pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = world_pose.pose.orientation;
 
     if (!SendGoal(pick_pose)) {
       return;
@@ -304,14 +304,14 @@ void PickPlace::CalibrateObjects() {
 
       geometry_msgs::PoseStamped world_pose, object_pose;
       world_pose.pose.position =    object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
-      world_pose.pose.orientation = object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation;
+      world_pose.pose.orientation = object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
 
       // Transform pose
       TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.transform);
 
       // apply transform
       object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.pose.position;
-      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation = object_pose.pose.orientation;
+      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = object_pose.pose.orientation;
     }
 
     r_gripper_.Close();

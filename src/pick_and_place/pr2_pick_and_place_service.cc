@@ -57,14 +57,17 @@ void Gripper::Close(){
 PickPlace::PickPlace(std::string arm) : move_arm_("move_right_arm",true) {
   arm_ = arm;
   const char *dynamic_object_str[] = {
-    "cup",
-    "bowl",
-    "soda",
+    // "cup",
+    // "bowl",
+    // "soda",
     "fork",
     "spoon",
     "knife"
   };
   const char *static_object_str[] = {
+    "cup",
+    "bowl",
+    "soda",
     "neutral",
     "placemat",
     "wineglass"

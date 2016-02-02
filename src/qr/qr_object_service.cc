@@ -56,13 +56,13 @@ QrObjectService::QrObjectService(ros::NodeHandle *nh) : it(*nh) {
   static const char *object_str[] = {
     // "neutral",
     // "placemat",
-    "cup",
+    // "cup",
     // "plate",
     "fork",
     "spoon",
     "knife",
     // "bowl",
-    "soda",
+    // "soda",
     // "wineglass"
   };
   object_list = std::vector<std::string>(object_str,

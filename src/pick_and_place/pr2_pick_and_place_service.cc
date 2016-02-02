@@ -108,9 +108,9 @@ void TransformPoseLocalToWorld(
   geometry_msgs::PoseStamped &input,
   geometry_msgs::PoseStamped &output,
   geometry_msgs::TransformStamped transform) {
-  output.pose.position.x = input.pose.position.x + transform.transform.position.x;
-  output.pose.position.y = input.pose.position.y + transform.transform.position.y;
-  output.pose.position.z = input.pose.position.z + transform.transform.position.z;
+  output.pose.position.x = input.pose.position.x + transform.transform.translation.x;
+  output.pose.position.y = input.pose.position.y + transform.transform.translation.y;
+  output.pose.position.z = input.pose.position.z + transform.transform.translation.z;
 
   output.pose.orientation = input.pose.orientation;
 }
@@ -119,9 +119,9 @@ void TransformPoseWorldToLocal(
   geometry_msgs::PoseStamped &input,
   geometry_msgs::PoseStamped &output,
   geometry_msgs::TransformStamped transform) {
-  output.pose.position.x = input.pose.position.x - transform.transform.position.x;
-  output.pose.position.y = input.pose.position.y - transform.transform.position.y;
-  output.pose.position.z = input.pose.position.z - transform.transform.position.z;
+  output.pose.position.x = input.pose.position.x - transform.transform.translation.x;
+  output.pose.position.y = input.pose.position.y - transform.transform.translation.y;
+  output.pose.position.z = input.pose.position.z - transform.transform.translation.z;
 
   output.pose.orientation = input.pose.orientation;
 }
@@ -269,9 +269,10 @@ void PickPlace::CalibrateObjects() {
   char c;
   r_gripper_.Open();
   for (uint32_t i = 0; i < objects_.size(); ++i) {
+    
     bool dynamic = true;
     for (int j = 0; j < static_objects_.size(); ++j) {
-      if (objects_[i] == static_obejcts_[j]) {
+      if (objects_[i] == static_objects_[j]) {
         dynamic = false;
         break;
       }
@@ -288,7 +289,7 @@ void PickPlace::CalibrateObjects() {
       // transform into object space
       table_setting_demo::object_position pos_msg;
       table_setting_demo::ObjectTransformation pose_msg;
-      pos_msg.request.object_id = object;
+      pos_msg.request.object_id = objects_[i];
       if (!ros::service::call("qr_get_object_position", pos_msg)) {
         ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
       }
@@ -297,7 +298,7 @@ void PickPlace::CalibrateObjects() {
       pose_msg.request.y = pos_msg.response.position[1];
       pose_msg.request.w = pos_msg.response.position[2];
       pose_msg.request.h = pos_msg.response.position[3];
-      pose_msg.request.object = object;
+      pose_msg.request.object = objects_[i];
       if (!ros::service::call("object_transformation", pose_msg)) {
         ROS_ERROR("Service: [%s] not available!", "object_transformation");
       }

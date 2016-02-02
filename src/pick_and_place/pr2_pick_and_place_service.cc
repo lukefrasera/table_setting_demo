@@ -301,9 +301,8 @@ void waitKeyboard() {
     int c = getch();
     if (c == ' ')
       break;
-    if (c == 13)
+    if (c == 10)
       break;
-    ros::Duration(.01).sleep();
   }
 }
 
@@ -322,10 +321,10 @@ void PickPlace::CalibrateObjects() {
 
     if (!dynamic) {
       printf(
-        "Move [%s] limb to: [%s] picking location and Press Any Key and Enter\n",
+        "Move [%s] limb to: [%s] picking location and Press Enter\n",
         arm_.c_str(),
         objects_[i].c_str());
-      std::cin >> c;
+      waitKeyboard();
       object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
     } else {
       printf("Dyanamic Object! Move arm out of Kinect path! Then Press enter\n");
@@ -364,26 +363,23 @@ void PickPlace::CalibrateObjects() {
       waitKeyboard();
       object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
 
-      LOG_INFO("HERE");
       geometry_msgs::PoseStamped world_pose, object_pose;
       world_pose.pose.position =    object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
       world_pose.pose.orientation = object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation;
-      LOG_INFO("HERE");
+
       // Transform pose
       TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.response.transform);
-      LOG_INFO("HERE");
       // apply transform
       object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.pose.position;
       object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = object_pose.pose.orientation;
-      LOG_INFO("HERE");
     }
 
     r_gripper_.Close();
     printf(
-      "Move [%s] limb to: [%s] Placeing location and Press Any Key and Enter\n",
+      "Move [%s] limb to: [%s] Placeing location and Press Enter\n",
       arm_.c_str(),
       objects_[i].c_str());
-    std::cin >> c;
+    waitKeyboard();
     object_goal_map_[objects_[i]].place_pose = GetArmPoseGoal();
     r_gripper_.Open();
   }

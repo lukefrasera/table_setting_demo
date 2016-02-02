@@ -312,7 +312,7 @@ void PickPlace::CalibrateObjects() {
         pose_msg.request.y = pos_msg.response.position[1];
         pose_msg.request.w = pos_msg.response.position[2];
         pose_msg.request.h = pos_msg.response.position[3];
-        pose_msg.request.object = object;
+        pose_msg.request.object = objects_[i];
 
         if (!ros::service::call("object_transformation", pose_msg)) {
           ROS_ERROR("Service: [%s] not available!", "object_transformation");

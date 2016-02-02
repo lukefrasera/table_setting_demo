@@ -135,6 +135,7 @@ bool ObjectTransService::GetObjectTransformation(
   // compute the orientation and position in 3D Space
   // compute first moment to get position
   pcl::compute3DCentroid(global_cloud, xyz_centroid);
+  std::cout << xyz_centroid <<std::endl;
 
   // compute covariance matrix
   // pcl::computeCovarianceMatrix(global_cloud, xyz_centroid, covariance_matrix);
@@ -195,17 +196,22 @@ bool ObjectTransService::GetObjectTransformation(
   rotation[1] = tf::Vector3(0,1,0);
   rotation[2] = tf::Vector3(0,0,1);
 
-  tf::Vector3 position = tf::Vector3( xyz_centroid(0),
-                                      xyz_centroid(1),
-                                      xyz_centroid(2));
+  // tf::Vector3 position = tf::Vector3( xyz_centroid[0],
+  //                                     xyz_centroid[1],
+  //                                     xyz_centroid[2]);
+  // printf("x: %f, y: %f, z: %f, w: %f\n",
+  //   xyz_centroid(0),
+  //   xyz_centroid(1),
+  //   xyz_centroid(2),
+  //   xyz_centroid(3));
   // position *= -1;
   tf::Quaternion orientation;
   rotation.getRotation(orientation);
   res.transform.header.frame_id = "base_link";
   res.transform.header.stamp = ros::Time::now();
-  res.transform.transform.translation.x = position.x();
-  res.transform.transform.translation.y = position.y();
-  res.transform.transform.translation.x = position.z();
+  res.transform.transform.translation.x = xyz_centroid(0);
+  res.transform.transform.translation.y = xyz_centroid(1);
+  res.transform.transform.translation.z = 0;//xyz_centroid(2);
   res.transform.transform.rotation.x = orientation.x();
   res.transform.transform.rotation.y = orientation.y();
   res.transform.transform.rotation.z = orientation.z();

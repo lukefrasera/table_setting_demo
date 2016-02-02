@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 int getch() {
-  static struct termios oldt, newt;
+  static termios oldt, newt;
   tcgetattr( STDIN_FILENO, &oldt);           // save old settings
   newt = oldt;
   newt.c_lflag &= ~(ICANON);                 // disable buffering      

@@ -104,6 +104,28 @@ void PickAndPlaceThread(PickPlace *manipulation, std::string object) {
   manipulation->PickAndPlaceImpl(object);
 }
 
+void TransformPoseLocalToWorld(
+  geometry_msgs::PoseStamped &input,
+  geometry_msgs::PoseStamped &output,
+  geometry_msgs::TransformStamped transform) {
+  output.position.x = input.position.x + transform.position.x;
+  output.position.y = input.position.y + transform.position.y;
+  output.position.z = input.position.z + transform.position.z;
+
+  output.orientation = input.orientation;
+}
+
+void TransformPoseWorldToLocal(
+  geometry_msgs::PoseStamped &input,
+  geometry_msgs::PoseStamped &output,
+  geometry_msgs::TransformStamped transform) {
+  output.position.x = input.position.x - transform.position.x;
+  output.position.y = input.position.y - transform.position.y;
+  output.position.z = input.position.z - transform.position.z;
+
+  output.orientation = input.orientation;
+}
+
 void PickPlace::PickAndPlaceImpl(std::string object) {
   printf("Picking up Object: %s\n", object.c_str());
   // check if dyanamic or static object
@@ -148,7 +170,20 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
       ROS_ERROR("Service: [%s] not available!", "object_transformation");
     }
     // Transform pose into world space
+    geometry_msgs::PoseStamped object_pose, world_pose;
+    arm_navigation_msgs::MoveArmGoal pick_pose = object_goal_map_[object.c_str()].pick_pose;
 
+    object_pose.position = pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
+    object_pose.orientation = pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation;
+
+    TransformPoseLocalToWorld(object_pose, world_pose, pose_msg.transform);
+
+    pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = world_pose.position;
+    pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation = world_pose.orientation;
+
+    if (!SendGoal(pick_pose)) {
+      return;
+    }
   } else {
     object_goal_map_[object.c_str()].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
     if (!SendGoal(object_goal_map_[object.c_str()].pick_pose)) {
@@ -178,7 +213,12 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   state_ = PLACED;
 
    object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
-  if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
+  if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
+    return;
+  }
+
+  object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
+  if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     return;
   }
 }
@@ -224,16 +264,56 @@ void PickPlace::PostParameters() {
     positions.clear();
   }
 }
+
 void PickPlace::CalibrateObjects() {
   char c;
   r_gripper_.Open();
   for (uint32_t i = 0; i < objects_.size(); ++i) {
+    bool dynamic = true;
+    for (int j = 0; j < static_objects_.size(); ++j) {
+      if (objects_[i] == static_obejcts_[j]) {
+        dynamic = false;
+        break;
+      }
+    }
     printf(
       "Move %s limb to: %s picking location and Press Any Key and Enter\n",
       arm_.c_str(),
       objects_[i].c_str());
     std::cin >> c;
+
     object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+    // check if the object is dynamic
+    if (dynamic) {
+      // transform into object space
+      table_setting_demo::object_position pos_msg;
+      table_setting_demo::ObjectTransformation pose_msg;
+      pos_msg.request.object_id = object;
+      if (!ros::service::call("qr_get_object_position", pos_msg)) {
+        ROS_ERROR("Service: [%s] not available!", "qr_get_object_position");
+      }
+      // Request object 3D transform
+      pose_msg.request.x = pos_msg.response.position[0];
+      pose_msg.request.y = pos_msg.response.position[1];
+      pose_msg.request.w = pos_msg.response.position[2];
+      pose_msg.request.h = pos_msg.response.position[3];
+      pose_msg.request.object = object;
+      if (!ros::service::call("object_transformation", pose_msg)) {
+        ROS_ERROR("Service: [%s] not available!", "object_transformation");
+      }
+
+      geometry_msgs::PoseStamped world_pose, object_pose;
+      world_pose.position =    object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
+      world_pose.orientation = object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation;
+
+      // Transform pose
+      TransformPoseWorldToLocal(world_pose, object_pose, pose_msg.transform);
+
+      // apply transform
+      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = object_pose.position;
+      object_goal_map_[object_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].orientation = object_pose.orientation;
+    }
+
     r_gripper_.Close();
     printf(
       "Move %s limb to: %s Placeing location and Press Any Key and Enter\n",

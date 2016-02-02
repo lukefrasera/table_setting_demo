@@ -278,6 +278,29 @@ void PickPlace::PostParameters() {
   }
 }
 
+int getch() {
+  static struct termios oldt, newt;
+  tcgetattr( STDIN_FILENO, &oldt);           // save old settings
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON);                 // disable buffering      
+  tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+
+  int c = getchar();  // read character (non-blocking)
+
+  tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
+  return c;
+}
+
+void waitKeyboard() {
+  while (true) {
+    int c = getch();
+    if (c == ' ')
+      break;
+    if (c == 13)
+      break;
+  }
+}
+
 void PickPlace::CalibrateObjects() {
   char c;
   r_gripper_.Open();
@@ -290,13 +313,18 @@ void PickPlace::CalibrateObjects() {
         break;
       }
     }
-    printf(
-      "Move [%s] limb to: [%s] picking location and Press Any Key and Enter\n",
-      arm_.c_str(),
-      objects_[i].c_str());
-    std::cin >> c;
 
-    object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+    if (!dynamic) {
+      printf(
+        "Move [%s] limb to: [%s] picking location and Press Any Key and Enter\n",
+        arm_.c_str(),
+        objects_[i].c_str());
+      std::cin >> c;
+      object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+    } else {
+      printf("Dyanamic Object! Move arm out of Kinect path! Then Press enter\n");
+      waitKeyboard();
+    }
     // check if the object is dynamic
     if (dynamic) {
       // transform into object space
@@ -322,6 +350,14 @@ void PickPlace::CalibrateObjects() {
         pose_msg.response.transform.transform.translation.y = 0;
         pose_msg.response.transform.transform.translation.z = 0;
       }
+
+      printf(
+        "Move [%s] limb to: [%s] picking location and Press Enter\n",
+        arm_.c_str(),
+        objects_[i].c_str());
+      waitKeyboard();
+      object_goal_map_[objects_[i]].pick_pose = GetArmPoseGoal();
+
       LOG_INFO("HERE");
       geometry_msgs::PoseStamped world_pose, object_pose;
       world_pose.pose.position =    object_goal_map_[objects_[i]].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position;
@@ -338,7 +374,7 @@ void PickPlace::CalibrateObjects() {
 
     r_gripper_.Close();
     printf(
-      "Move %s limb to: %s Placeing location and Press Any Key and Enter\n",
+      "Move [%s] limb to: [%s] Placeing location and Press Any Key and Enter\n",
       arm_.c_str(),
       objects_[i].c_str());
     std::cin >> c;

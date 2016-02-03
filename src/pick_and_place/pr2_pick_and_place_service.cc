@@ -282,7 +282,11 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
 bool PickPlace::PickAndPlaceObject(
     table_setting_demo::pick_and_place::Request &req,
     table_setting_demo::pick_and_place::Response &res) {
-  work_thread =  new boost::thread(&PickAndPlaceThread, this, req.object);
+  stop = true;
+  if (work_thread)
+    work_thread->join();
+  stop = false;
+  work_thread =  boost::shared_ptr<boost::thread>(new boost::thread(&PickAndPlaceThread, this, req.object));
   res.success = true;
   return true;
 }
@@ -311,7 +315,7 @@ bool PickPlace::PickAndPlaceStop(
     table_setting_demo::pick_and_place_stop::Response &res) {
   stop = true;
   move_arm_.cancelGoal();
-  work_thread->join()
+  work_thread->join();
   stop = false;
   return true;
 }

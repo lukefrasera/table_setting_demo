@@ -58,6 +58,7 @@ add_service_files(
   FILES
   pick_and_place.srv
   pick_and_place_state.srv
+  pick_and_place_stop.srv
   object_request.srv
   object_position.srv
   ObjectTransformation.srv

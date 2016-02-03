@@ -118,22 +118,22 @@ class TableSetting {
           object = name_param.topic.c_str();
           if (object =="PLACE_3_1_002") {
             ros::param::get("/ObjectPositions/placemat", object_pos);
-            // network[i] = new task_net::TableObject(name_param,
-            //                         peers_param,
-            //                         children_param,
-            //                         parent_param,
-            //                         state,
-            //                         "/right_arm_mutex",
-            //                         "placemat",
-            //                         neutral_object_pos,
-            //                         object_pos,
-            //                         false);
-            network[i] = new task_net::AndBehavior(name_param,
-                                      peers_param,
-                                      children_param,
-                                      parent_param,
-                                      state,
-                                      false);
+            network[i] = new task_net::TableObject(name_param,
+                                    peers_param,
+                                    children_param,
+                                    parent_param,
+                                    state,
+                                    "/right_arm_mutex",
+                                    "placemat",
+                                    neutral_object_pos,
+                                    object_pos,
+                                    false);
+            // network[i] = new task_net::AndBehavior(name_param,
+            //                           peers_param,
+            //                           children_param,
+            //                           parent_param,
+            //                           state,
+            //                           false);
           } else if (object =="PLACE_3_1_005") {
             ros::param::get("/ObjectPositions/spoon", object_pos);
             network[i] = new task_net::TableObject(name_param,

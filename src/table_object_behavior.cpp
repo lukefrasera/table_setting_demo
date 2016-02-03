@@ -43,6 +43,25 @@ typedef enum STATE {
 }  // namespace pr2
 
 namespace task_net {
+
+static const char *dynamic_object_str[] = {
+  // "cup",
+  // "bowl",
+  // "soda",
+  "fork",
+  "spoon",
+  "knife"
+};
+static const char *static_object_str[] = {
+  "cup",
+  "bowl",
+  "soda",
+  "neutral",
+  "placemat",
+  "wineglass",
+  "plate"
+};
+
 TableObject::TableObject() {}
 TableObject::TableObject(NodeId_t name, NodeList peers, NodeList children,
     NodeId_t parent,
@@ -61,6 +80,22 @@ TableObject::TableObject(NodeId_t name, NodeList peers, NodeList children,
   object_pos = pos;
   neutral_object_pos = neutral_pos;
   object_id_ = "";
+
+  // check if dynamic object
+  std::vector<std::string> static_objects_ = std::vector<std::string>(
+    static_object_str,
+    static_object_str + sizeof(static_object_str) / sizeof(char*));
+  dynamic_object = true;
+  for (int i = 0; i < static_objects_.size(); ++i) {
+    if (object == static_objects_[i]) {
+      dynamic_object = false;
+      break;
+    }
+  }
+  // set object_id
+  if (!dynamic_object) {
+    object_id_ = object;
+  }
 }
 TableObject::~TableObject() {}
 
@@ -82,23 +117,28 @@ void TableObject::PickAndPlace(std::string object) {
   }
 }
 bool TableObject::Precondition() {
-  table_setting_demo::object_request msg;
-  table_setting_demo::object_position pos_msg;
-  msg.request.object = object_.c_str();
-  // Check if object available in scene
-  if (ros::service::call("qr_get_object", msg)) {
-    if (msg.response.in_scene) {
-      object_id_ = msg.response.object_id;
-      pos_msg.request.object_id = object_id_;
-      if (ros::service::call("qr_get_object_position", pos_msg)) {
-        object_pos = pos_msg.response.position;
-      } else {
-        LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
+  // check if dynamic object
+  if (dynamic_object) {
+    table_setting_demo::object_request msg;
+    table_setting_demo::object_position pos_msg;
+    msg.request.object = object_;
+    // Check if object available in scene
+    if (ros::service::call("qr_get_object", msg)) {
+      if (msg.response.in_scene) {
+        object_id_ = msg.response.object_id;
+        pos_msg.request.object_id = object_id_;
+        if (ros::service::call("qr_get_object_position", pos_msg)) {
+          object_pos = pos_msg.response.position;
+        } else {
+          LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
+        }
+        return true;
       }
-      return true;
     }
+    return false;
+  } else {
+    return true;
   }
-  return false;
 }
 bool TableObject::ActivationPrecondition() {
   return mut.Lock(state_.activation_potential);
@@ -106,7 +146,7 @@ bool TableObject::ActivationPrecondition() {
 
 bool TableObject::PickAndPlaceDone() {
   table_setting_demo::pick_and_place msg;
-  msg.request.object = object_.c_str();
+  msg.request.object = object_;
   ros::service::call("pick_and_place_check", msg);
   return msg.response.success;
 }
@@ -114,7 +154,7 @@ bool TableObject::PickAndPlaceDone() {
 void TableObject::Work() {
   PickAndPlace(object_id_.c_str());
   while (!PickAndPlaceDone()) {
-    boost::this_thread::sleep(boost::posix_time::millisec(10));
+    boost::this_thread::sleep(boost::posix_time::millisec(500));
   }
   // Check if succeeded and try again
   mut.Release();
@@ -128,9 +168,9 @@ float CalcPositionDistance(std::vector<float> pos_a, std::vector<float> pos_b) {
 
 bool TableObject::CheckWork() {
   table_setting_demo::pick_and_place_state msg;
-  table_setting_demo::qr_inview view_msg;
+  table_setting_demo::pick_and_place view_msg;
   table_setting_demo::object_position pos_msg;
-  float distance_thresh = .01;
+  float distance_thresh = 50;
   float dist;
   if(ros::service::call("pick_and_place_state", msg)) {
     if (msg.response.state == pr2::APPROACHING) {
@@ -139,7 +179,9 @@ bool TableObject::CheckWork() {
       // Check if the object is still in view
       // TODO: consider self intersection with objects blocking the view.
       view_msg.request.object = object_id_.c_str();
-      if (ros::service::call("qr_object_inview", view_msg)) {
+      if (true) {
+      // if (ros::service::call("qr_object_inview", view_msg)) {
+        LOG_INFO("OBJECT IN VIEW!!!");
         if (view_msg.response.success) {
           // Check if the object is in the same place with in reason
           pos_msg.request.object_id = object_id_;
@@ -152,6 +194,7 @@ bool TableObject::CheckWork() {
             LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "qr_get_object_position");
           }
         } else {
+          ROS_INFO("RESETING  BEHAVIOR!!!!!!!!!!!!!!1");
           return false;
         }
       } else {
@@ -162,5 +205,12 @@ bool TableObject::CheckWork() {
     LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "pick_and_place_state");
   }
   return true;
+}
+
+void TableObject::UndoWork() {
+  LOG_INFO("UNDOING WORK!!");
+  table_setting_demo::pick_and_place_stop msg;
+  ros::service::call("pick_and_place_stop", msg);
+  mut.Release();
 }
 }  // namespace task_net

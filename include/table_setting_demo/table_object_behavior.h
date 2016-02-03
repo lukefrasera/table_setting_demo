@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "remote_mutex/remote_mutex.h"
 
 namespace task_net { 
+
 class TableObject : public Behavior {
  public:
   TableObject();
@@ -44,12 +45,15 @@ class TableObject : public Behavior {
   virtual void Work();
   virtual bool PickAndPlaceDone();
   virtual bool CheckWork();
+  virtual void UndoWork();
+
  private:
   mutex::RemoteMutex mut;
   std::string object_;
   std::string object_id_;
   std::vector<float> object_pos;
   std::vector<float> neutral_object_pos;
+  bool dynamic_object;
 };
 }  // namespace task_net
 #endif  // INCLUDE_TABLE_SETTING_TABLE_OBJECT_H_

@@ -25,8 +25,8 @@ class QrObjectService {
   virtual ~QrObjectService();
 
   bool QrInView(
-    table_setting_demo::qr_inview::Request &req,
-    table_setting_demo::qr_inview::Response &res);
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res);
   bool GetQrObject(
     table_setting_demo::object_request::Request &req,
     table_setting_demo::object_request::Response &res);
@@ -302,8 +302,8 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
 }
 
 bool QrObjectService::QrInView(
-    table_setting_demo::qr_inview::Request &req,
-    table_setting_demo::qr_inview::Response &res) {
+    table_setting_demo::pick_and_place::Request &req,
+    table_setting_demo::pick_and_place::Response &res) {
   if (object_detector.ObjectInView(req.object)) {
     res.success = true;
   } else {

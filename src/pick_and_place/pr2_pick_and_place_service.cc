@@ -152,6 +152,8 @@ void TransformPoseWorldToLocal(
 void PickPlace::PickAndPlaceImpl(std::string object) {
   printf("Picking up Object: %s\n", object.c_str());
   // check if dyanamic or static object
+  if (stop)
+    return;
   table_setting_demo::object_position pos_msg;
   table_setting_demo::ObjectTransformation pose_msg;
   bool dynamic = true;
@@ -170,9 +172,13 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   r_gripper_.Open();
   // Move to Neutral Start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
+  if (stop)
+    return;
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     return;
   }
+  if (stop)
+    return;
   // Move to Object Pick location
   state_ = APPROACHING;
 
@@ -211,43 +217,62 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
 
     pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = world_pose.pose.position;
     pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = world_pose.pose.orientation;
-
+    if (stop)
+    return;
     if (!SendGoal(pick_pose)) {
       return;
     }
+    if (stop)
+    return;
   } else {
+    if (stop)
+    return;
     object_goal_map_[object.c_str()].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
     if (!SendGoal(object_goal_map_[object.c_str()].pick_pose)) {
       return;
     }
+    if (stop)
+    return;
   }
   state_ = PICKING;
   r_gripper_.Close();
   state_ = PICKED;
   // Move to Neutral start
+  if (stop)
+    return;
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     return;
   }
+  if (stop)
+    return;
   state_ = PLACING;
   object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].place_pose)) {
     return;
   }
+  if (stop)
+    return;
 
   // obejct place
   object_goal_map_[object.c_str()].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_[object.c_str()].place_pose)) {
     return;
   }
+  if (stop)
+    return;
   r_gripper_.Open();
   state_ = PLACED;
 
+  if (stop)
+    return;
    object_goal_map_["neutral"].place_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     return;
   }
 
+  if (stop)
+    return;
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (!SendGoal(object_goal_map_["neutral"].pick_pose)) {
     return;
@@ -257,8 +282,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
 bool PickPlace::PickAndPlaceObject(
     table_setting_demo::pick_and_place::Request &req,
     table_setting_demo::pick_and_place::Response &res) {
-  
-  boost::thread(&PickAndPlaceThread, this, req.object);
+  work_thread =  new boost::thread(&PickAndPlaceThread, this, req.object);
   res.success = true;
   return true;
 }
@@ -279,6 +303,16 @@ bool PickPlace::PickAndPlaceState(
     table_setting_demo::pick_and_place_state::Request &req,
     table_setting_demo::pick_and_place_state::Response &res) {
   res.state = state_;
+  return true;
+}
+
+bool PickPlace::PickAndPlaceStop(
+    table_setting_demo::pick_and_place_stop::Request &req,
+    table_setting_demo::pick_and_place_stop::Response &res) {
+  stop = true;
+  move_arm_.cancelGoal();
+  work_thread->join()
+  stop = false;
   return true;
 }
 

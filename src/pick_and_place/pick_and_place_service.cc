@@ -55,6 +55,10 @@ int main(int argc, char **argv) {
     "pick_and_place_state",
     &pr2::PickPlace::PickAndPlaceState,
     &pp);
+  ros::ServiceServer service_stop = nh.advertiseService(
+    "pick_and_place_stop",
+    &pr2::PickPlace::PickAndPlaceStop,
+    &pp);
   printf("READY to PICK and Place\n");
   ros::spin();
   return 0;

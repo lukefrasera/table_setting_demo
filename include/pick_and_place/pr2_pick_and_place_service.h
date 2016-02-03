@@ -66,6 +66,9 @@ class PickPlace {
   bool PickAndPlaceState(
     table_setting_demo::pick_and_place_state::Request &req,
     table_setting_demo::pick_and_place_state::Response &res);
+  bool PickAndPlaceStop(
+    table_setting_demo::pick_and_place_stop::Request &req,
+    table_setting_demo::pick_and_place_stop::Response &res);
   void PostParameters();
   void CalibrateObjects();
   void ReadCalibration(std::string filename);
@@ -90,6 +93,8 @@ class PickPlace {
   actionlib::SimpleActionClient<arm_navigation_msgs::MoveArmAction> move_arm_;
   Gripper r_gripper_;
   uint32_t state_;
+  bool stop;
+  boost::shared_ptr<boost::thread> work_thread;
 };
 }
 #endif  // PICK_AND_PLACE_PR2_PICK_AND_PLACE_SERVICE

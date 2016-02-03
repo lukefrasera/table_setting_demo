@@ -153,8 +153,8 @@ bool TableObject::Precondition() {
     // Check if object available in scene
     if (ros::service::call("qr_get_object_position", pos_msg)) {
       if (pos_msg.response.position.size() > 0) {
-        object_pos[0] = pos_msg.response.position[0];
-        object_pos[1] = pos_msg.response.position[1];
+        object_pos[0] = pos_msg.response.position[0] + pos_msg.response.position[2] / 2.0;
+        object_pos[1] = pos_msg.response.position[1] + pos_msg.response.position[3] / 2.0;
         object_pos[2] = 0;
       }
     } else {
@@ -200,9 +200,10 @@ void TableObject::Work() {
   mut.Release();
 }
 float CalcPositionDistance(std::vector<float> pos_a, std::vector<float> pos_b) {
+  // LOG_INFO("TX: %f TY: %f TZ: %f, 3X: %f 3Y: %f 3Z: %f", pos_a);
   float x = pow(pos_a[0] - pos_b[0], 2);
   float y = pow(pos_a[1] - pos_b[1], 2);
-  float z = pow(pos_a[2] - pos_b[2], 2);
+  float z = 0;//pow(pos_a[2] - pos_b[2], 2);
   return sqrt(x + y + z);
 }
 
@@ -210,7 +211,7 @@ bool TableObject::CheckWork() {
   table_setting_demo::pick_and_place_state msg;
   table_setting_demo::pick_and_place view_msg;
   table_setting_demo::object_position pos_msg;
-  float distance_thresh = 50;
+  float distance_thresh = 15;
   float dist;
   if (dynamic_object) {
     if(ros::service::call("pick_and_place_state", msg)) {
@@ -224,7 +225,11 @@ bool TableObject::CheckWork() {
           // Check if the object is in the same place with in reason
           pos_msg.request.object_id = object_;
         if (ros::service::call("qr_get_object_position", pos_msg)) {
-          dist = CalcPositionDistance(pos_msg.response.position, object_pos);
+          std::vector<float> track_pos(3);
+          track_pos[0] = pos_msg.response.position[0] + pos_msg.response.position[2] / 2.0;
+          track_pos[1] = pos_msg.response.position[1] + pos_msg.response.position[3] / 2.0;
+          track_pos[2] = 0;
+          dist = CalcPositionDistance(track_pos, object_pos);
           LOG_INFO("DISTANCE MEASURE: [%F]!!!!!!!!!!!!!!!!!!!!!", dist);
           if (dist < distance_thresh) {
             return true;
@@ -244,5 +249,22 @@ void TableObject::UndoWork() {
   table_setting_demo::pick_and_place_stop msg;
   ros::service::call("pick_and_place_stop", msg);
   mut.Release();
+  // update object position
+  if (dynamic_object) {
+    table_setting_demo::object_request msg;
+    table_setting_demo::object_position pos_msg;
+    pos_msg.request.object_id = object_;
+    LOG_INFO("Renewing position, [%s]", object_.c_str());
+    // Check if object available in scene
+    if (ros::service::call("qr_get_object_position", pos_msg)) {
+      if (pos_msg.response.position.size() > 0) {
+        object_pos[0] = pos_msg.response.position[0] + pos_msg.response.position[2] / 2.0;
+        object_pos[1] = pos_msg.response.position[1] + pos_msg.response.position[3] / 2.0;
+        object_pos[2] = 0;
+      }
+    } else {
+      LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
+    }
+  }
 }
 }  // namespace task_net

@@ -16,7 +16,7 @@ void StateUpdate(ObjectTransService *service) {
   while (true) {
     printf("Polling for table state\n");
     service->GetState();
-    boost::this_thread::sleep(boost::posix_time::millisec(5000));
+    boost::this_thread::sleep(boost::posix_time::millisec(2000));
   }
 }
 

@@ -29,6 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "table_setting_demo/object_request.h"
 #include "table_setting_demo/pick_and_place_state.h"
 #include "table_setting_demo/object_position.h"
+#include "table_setting_demo/pick_and_place_stop.h"
+#include "table_setting_demo/ObjectTransformation.h"
 
 namespace pr2 {
 typedef enum STATE {
@@ -103,11 +105,36 @@ void TableObject::UpdateActivationPotential() {
   float dist;
   // Get object neutral position and object position 
   //   from service call potentially
-  float x = pow(neutral_object_pos[0] - object_pos[0], 2);
-  float y = pow(neutral_object_pos[1] - object_pos[1], 2);
-  float z = pow(neutral_object_pos[2] - object_pos[2], 2);
-  dist = sqrt(x + y + z);
-  state_.activation_potential = 1.0f / dist;
+  if (!dynamic_object) {
+    float x = pow(neutral_object_pos[0] - object_pos[0], 2);
+    float y = pow(neutral_object_pos[1] - object_pos[1], 2);
+    float z = pow(neutral_object_pos[2] - object_pos[2], 2);
+    dist = sqrt(x + y + z);
+    state_.activation_potential = 1.0f / dist;
+  } else {
+    table_setting_demo::object_position pos_msg;
+    table_setting_demo::ObjectTransformation pose_msg;
+    // Check if object available in scene
+    pos_msg.request.object_id = object_;
+    if (!ros::service::call("qr_get_object_position", pos_msg)) {
+      LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
+    } else {
+      pose_msg.request.x = pos_msg.response.position[0];
+      pose_msg.request.y = pos_msg.response.position[1];
+      pose_msg.request.w = pos_msg.response.position[2];
+      pose_msg.request.h = pos_msg.response.position[3];
+      if (!ros::service::call("object_transformation", pose_msg)) {
+        ROS_ERROR("Service [%s] is not available!", "object_transformation");
+      } else {
+        float x = pow(neutral_object_pos[0] - pose_msg.response.transform.transform.translation.x,2);
+        float y = pow(neutral_object_pos[1] - pose_msg.response.transform.transform.translation.y,2);
+        float z = pow(neutral_object_pos[2] - pose_msg.response.transform.transform.translation.z,2);
+        dist = sqrt(x + y + z);
+        state_.activation_potential = 1.0f / dist;
+      }
+    }
+    // update position
+  }
 }
 void TableObject::PickAndPlace(std::string object) {
   table_setting_demo::pick_and_place msg;
@@ -121,24 +148,20 @@ bool TableObject::Precondition() {
   if (dynamic_object) {
     table_setting_demo::object_request msg;
     table_setting_demo::object_position pos_msg;
-    msg.request.object = object_;
+    pos_msg.request.object_id = object_;
+    LOG_INFO("Dynamic Object Checking Precondition, [%s]", object_.c_str());
     // Check if object available in scene
-    if (ros::service::call("qr_get_object", msg)) {
-      if (msg.response.in_scene) {
-        object_id_ = msg.response.object_id;
-        pos_msg.request.object_id = object_id_;
-        if (ros::service::call("qr_get_object_position", pos_msg)) {
-          object_pos = pos_msg.response.position;
-        } else {
-          LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
-        }
-        return true;
+    if (ros::service::call("qr_get_object_position", pos_msg)) {
+      if (pos_msg.response.position.size() > 0) {
+        object_pos[0] = pos_msg.response.position[0];
+        object_pos[1] = pos_msg.response.position[1];
+        object_pos[2] = 0;
       }
+    } else {
+      LOG_INFO("SERVICE: [%s] - Not responding!", "qr_get_object_position");
     }
-    return false;
-  } else {
-    return true;
   }
+  return true;
 }
 bool TableObject::ActivationPrecondition() {
   return mut.Lock(state_.activation_potential);
@@ -152,6 +175,23 @@ bool TableObject::PickAndPlaceDone() {
 }
 
 void TableObject::Work() {
+  // check that obejct tracker is still good
+  if (dynamic_object) {
+  table_setting_demo::object_position pos_msg;
+    pos_msg.request.object_id = object_;
+    bool tracked = false;
+    boost::this_thread::sleep(boost::posix_time::millisec(1000));
+    while (!tracked) {
+      if (ros::service::call("qr_get_object_position", pos_msg)) {
+        if (pos_msg.response.position.size() > 0) {
+          tracked = true;
+        }
+      }
+    }
+    LOG_INFO("Waiting to pick up object [%s]!", object_.c_str());
+    boost::this_thread::sleep(boost::posix_time::millisec(6000));
+    object_id_ = object_;
+  }
   PickAndPlace(object_id_.c_str());
   while (!PickAndPlaceDone()) {
     boost::this_thread::sleep(boost::posix_time::millisec(500));
@@ -172,37 +212,29 @@ bool TableObject::CheckWork() {
   table_setting_demo::object_position pos_msg;
   float distance_thresh = 50;
   float dist;
-  if(ros::service::call("pick_and_place_state", msg)) {
-    if (msg.response.state == pr2::APPROACHING) {
-      LOG_INFO("Approaching object: %s - Checking Object Availability",
-        object_.c_str());
-      // Check if the object is still in view
-      // TODO: consider self intersection with objects blocking the view.
-      view_msg.request.object = object_id_.c_str();
-      if (true) {
-      // if (ros::service::call("qr_object_inview", view_msg)) {
+  if (dynamic_object) {
+    if(ros::service::call("pick_and_place_state", msg)) {
+      if (msg.response.state == pr2::APPROACHING) {
+        LOG_INFO("Approaching object: %s - Checking Object Availability",
+          object_.c_str());
+        // Check if the object is still in view
+        // TODO: consider self intersection with objects blocking the view.
+        // if (ros::service::call("qr_object_inview", view_msg)) {
         LOG_INFO("OBJECT IN VIEW!!!");
-        if (view_msg.response.success) {
           // Check if the object is in the same place with in reason
-          pos_msg.request.object_id = object_id_;
-          if (ros::service::call("qr_get_object_position", pos_msg)) {
-            dist = CalcPositionDistance(pos_msg.response.position, object_pos);
-            if (dist < distance_thresh) {
-              return true;
-            }
+          pos_msg.request.object_id = object_;
+        if (ros::service::call("qr_get_object_position", pos_msg)) {
+          dist = CalcPositionDistance(pos_msg.response.position, object_pos);
+          LOG_INFO("DISTANCE MEASURE: [%F]!!!!!!!!!!!!!!!!!!!!!", dist);
+          if (dist < distance_thresh) {
+            return true;
           } else {
-            LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "qr_get_object_position");
+            ROS_INFO("RESETING  BEHAVIOR!!!!!!!!!!!!!!");
+            return false;
           }
-        } else {
-          ROS_INFO("RESETING  BEHAVIOR!!!!!!!!!!!!!!1");
-          return false;
         }
-      } else {
-        LOG_INFO("SERVICE - [%s] NOT AVILABLE", "qr_object_inview");
       }
     }
-  } else {
-    LOG_INFO("SERVICE - [%s] NOT AVAILABLE", "pick_and_place_state");
   }
   return true;
 }

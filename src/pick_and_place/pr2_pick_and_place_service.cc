@@ -170,6 +170,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   }
   state_ = NEUTRAL;
   r_gripper_.Open();
+  state_ = APPROACHING;
   // Move to Neutral Start
   object_goal_map_["neutral"].pick_pose.motion_plan_request.goal_constraints.position_constraints[0].header.stamp = ros::Time::now();
   if (stop)
@@ -180,7 +181,6 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
   if (stop)
     return;
   // Move to Object Pick location
-  state_ = APPROACHING;
 
   // Check if Object is dynamic or static
   if (dynamic) {
@@ -215,6 +215,7 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
 
     TransformPoseLocalToWorld(object_pose, world_pose, pose_msg.response.transform);
 
+    state_ = PICKING;
     pick_pose.motion_plan_request.goal_constraints.position_constraints[0].position = world_pose.pose.position;
     pick_pose.motion_plan_request.goal_constraints.orientation_constraints[0].orientation = world_pose.pose.orientation;
     if (stop)
@@ -234,7 +235,6 @@ void PickPlace::PickAndPlaceImpl(std::string object) {
     if (stop)
     return;
   }
-  state_ = PICKING;
   r_gripper_.Close();
   state_ = PICKED;
   // Move to Neutral start

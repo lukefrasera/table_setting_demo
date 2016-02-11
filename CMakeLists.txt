@@ -31,8 +31,8 @@ if (${BUILD_TABLE_SETTING_DEMO})
   link_directories(${PCL_LIBRARY_DIRS})
   add_definitions(${PCL_DEFINITIONS})
 
-  find_package(Eigen3 REQUIRED)
-  INCLUDE_DIRECTORIES(${EIGEN_INVLUDE_DIR})
+  #  find_package(Eigen3 REQUIRED)
+  #  INCLUDE_DIRECTORIES(${EIGEN_INVLUDE_DIR})
 endif (${BUILD_TABLE_SETTING_DEMO})
 find_package(Boost REQUIRED COMPONENTS 
   date_time

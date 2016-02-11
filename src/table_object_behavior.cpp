@@ -98,6 +98,12 @@ TableObject::TableObject(NodeId_t name, NodeList peers, NodeList children,
   if (!dynamic_object) {
     object_id_ = object;
   }
+
+  // Check size of initial position of objects
+  if (pos.size() <= 0)
+    object_pos = std::vector<float>(3);
+  if (neutral_pos.size() <= 0)
+    neutral_object_pos = std::vector<float>(3);
 }
 TableObject::~TableObject() {}
 

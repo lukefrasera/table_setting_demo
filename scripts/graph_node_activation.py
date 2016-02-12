@@ -9,6 +9,30 @@ import fnmatch
 import csv
 
 
+def GetBeginAndEndTime(data):
+    return min(data), max(data)
+
+
+def GenerateHorizontalBar(data):
+    # Determine start and end time
+    data_array = np.array(data)
+    start_time, end_time = GetBeginAndEndTime(data_array[:, 0])
+    # determine segments
+    # find activation times
+    mask = data_array[:, 5:6]
+    print mask.T.shape
+    return [], []
+
+
+def GraphData(data):
+    for key in data:
+        print "Processing - [%s]" % key
+        # Generate bar graph for key value pair
+        color, bar_data = GenerateHorizontalBar(data[key])
+        #plt.barh(np.arange(len(bar_data)), bar_data, color=color)
+    #plt.show()
+
+
 def main():
     parser = argparse.ArgumentParser(description='Process directory input')
     parser.add_argument('-d', '--dir', type=str, required=True, help='Directory of behavior runtime results')
@@ -17,8 +41,10 @@ def main():
 
     if not os.path.exists(args.dir):
         logging.error('Directory not found - [%s]' % os.path.abspath(args.dir))
+        return -1
     if not os.path.isdir(args.dir):
         logging.error('Error: Expected directory not file')
+        return -1
 
     print 'Loading files...'
     files = [f for f in os.listdir(args.dir) if os.path.isfile(os.path.join(args.dir, f))]
@@ -32,6 +58,8 @@ def main():
                 data[file] = list(spamreader)
 
     print 'Processing Data...'
+
+    GraphData(data)
 
 if __name__ == "__main__":
     main()

@@ -12,15 +12,42 @@ import csv
 def GetBeginAndEndTime(data):
     return min(data), max(data)
 
+def GetState(array):
+    result = ""
+    for elem in array:
+        result += str(int(elem))
+    return result
+
+
+def StateChange(a_arr, b_arr):
+    if GetState(a_arr) != GetState(b_arr):
+        return True
+    return False
+
 
 def GenerateHorizontalBar(data):
     # Determine start and end time
-    data_array = np.array(data)
+    data_array = np.array([[float(j) for j in i] for i in data])
     start_time, end_time = GetBeginAndEndTime(data_array[:, 0])
     # determine segments
     # find activation times
-    mask = data_array[:, 5:6]
-    print mask.T.shape
+    # build bitmask
+    state_array = data_array[:,0:4]
+    state_array[:,3] = state_array[:,3] > 0.18
+
+    plot_state_segments = []
+    plot_state_segments.append((state_array[0][0], GetState(state_array[0][1:4])))
+    for i in xrange(len(state_array)):
+        # time, active, done, activation_level
+        if i > 0:
+            # Check for state chagnes
+            if StateChange(state_array[i-1][1:4], state_array[i][1:4]):
+                plot_state_segments.append((state_array[i][0], GetState(state_array[i][1:4])))
+    plot_state_segments.append((state_array[-1][0], '000'))
+    print plot_state_segments
+
+
+
     return [], []
 
 
@@ -51,11 +78,12 @@ def main():
     # Generate data dictionary to store information
     data = dict()
     for file in files:
-        if fnmatch.fnmatch(file, '*.csv'):
-            print 'Loading [%s]' % file
-            with open(os.path.join(args.dir, file), 'rb') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=',')
-                data[file] = list(spamreader)
+        if file != 'remote_mutex.csv':
+            if fnmatch.fnmatch(file, '*.csv'):
+                print 'Loading [%s]' % file
+                with open(os.path.join(args.dir, file), 'rb') as csvfile:
+                    spamreader = csv.reader(csvfile, delimiter=',')
+                    data[file] = list(spamreader)
 
     print 'Processing Data...'
 

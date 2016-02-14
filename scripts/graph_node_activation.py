@@ -25,6 +25,16 @@ def StateChange(a_arr, b_arr):
     return False
 
 
+def GetStateColor(state):
+    color = [1.0, 1.0, 1.0, 1.0]
+    if state == '000':
+        color = [0.5, 0.5, 1.0, 1.0]
+    elif state == '001':
+        color = [0.9, 0.1, 0.9, 1.0]
+    elif state == '101':
+        color = [0.3, 0.4, 0.8, 1.0]
+    return color
+
 def GenerateHorizontalBar(data):
     # Determine start and end time
     data_array = np.array([[float(j) for j in i] for i in data])
@@ -35,7 +45,7 @@ def GenerateHorizontalBar(data):
     state_array = data_array[:,0:4]
     state_array[:,3] = state_array[:,3] > 0.18
 
-    plot_state_segments = []
+    plot_state_segments = list()
     plot_state_segments.append((state_array[0][0], GetState(state_array[0][1:4])))
     for i in xrange(len(state_array)):
         # time, active, done, activation_level
@@ -44,19 +54,37 @@ def GenerateHorizontalBar(data):
             if StateChange(state_array[i-1][1:4], state_array[i][1:4]):
                 plot_state_segments.append((state_array[i][0], GetState(state_array[i][1:4])))
     plot_state_segments.append((state_array[-1][0], '000'))
-    print plot_state_segments
 
+    color = []
+    segments = []
+    for i in xrange(len(plot_state_segments)-1):
+        segments.append(plot_state_segments[i+1][0] - plot_state_segments[i][0])
+        color.append(GetStateColor(plot_state_segments[i][1]))
 
-
-    return [], []
+    # generate color and index
+    return segments, color
 
 
 def GraphData(data):
+    bar_width = 0.4
+    segment_list = list()
+    max_length = -1
     for key in data:
         print "Processing - [%s]" % key
         # Generate bar graph for key value pair
-        color, bar_data = GenerateHorizontalBar(data[key])
-        #plt.barh(np.arange(len(bar_data)), bar_data, color=color)
+        bar_info = GenerateHorizontalBar(data[key])
+        if len(bar_info[0]) > max_length:
+            max_length = len(bar_info[0])
+        segment_list.append(bar_info)
+    # graph segments
+    for i in xrange(max_length):
+        # extract row
+        for elem in segment_list:
+            if i < len(elem)
+        data = [j[0][i] for j in segment_list]
+        color = [j[1][i] for j in segment_list]
+        plt.barh(np.arange(0, len(data)*bar_width, bar_width), data, bar_width, color=color)
+    # plt.barh(np.arange(0, len(bar_data)*bar_width, bar_width), bar_data, bar_width, color=color)
     #plt.show()
 
 

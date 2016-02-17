@@ -2,12 +2,18 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import argparse
 import os
 import logging
 import fnmatch
 import csv
 
+
+state_color_map = {'000' : [0.95, 0.95, 0.95, 1.0],
+                   '001' : [0.2, 0.5, 0.8, 1.0],
+                   '101' : [0.9, 0.4, 0.8, 1.0],
+                   '011' : [0.5, 0.5, 0.5, 1.0]}
 
 def GetBeginAndEndTime(data):
     return min(data), max(data)
@@ -26,13 +32,16 @@ def StateChange(a_arr, b_arr):
 
 
 def GetStateColor(state):
+    # time, active, done, activation_level
     color = [1.0, 1.0, 1.0, 1.0]
     if state == '000':
-        color = [0.5, 0.5, 1.0, 1.0]
+        color = [1.0, 1.0, 1.0, 1.0]
     elif state == '001':
-        color = [0.9, 0.1, 0.9, 1.0]
+        color = [0.2, 0.5, 0.8, 1.0]
     elif state == '101':
-        color = [0.3, 0.4, 0.8, 1.0]
+        color = [0.9, 0.4, 0.8, 1.0]
+    elif state == '011':
+        color = [0.8, 0.8, 0.8, 1.0]
     return color
 
 def GenerateHorizontalBar(data):
@@ -59,34 +68,54 @@ def GenerateHorizontalBar(data):
     segments = []
     for i in xrange(len(plot_state_segments)-1):
         segments.append(plot_state_segments[i+1][0] - plot_state_segments[i][0])
-        color.append(GetStateColor(plot_state_segments[i][1]))
+        color.append(plot_state_segments[i][1])
 
     # generate color and index
     return segments, color
 
 
-def GraphData(data):
+def GraphData(data_hash):
     bar_width = 0.4
     segment_list = list()
     max_length = -1
-    for key in data:
+    for key in data_hash:
         print "Processing - [%s]" % key
         # Generate bar graph for key value pair
-        bar_info = GenerateHorizontalBar(data[key])
+        bar_info = GenerateHorizontalBar(data_hash[key])
+
         if len(bar_info[0]) > max_length:
             max_length = len(bar_info[0])
         segment_list.append(bar_info)
     # graph segments
+    x_offset = np.array([0.0] * len(segment_list))
+    y_index = np.arange(bar_width/2, len(segment_list)*bar_width + bar_width/2, bar_width);
     for i in xrange(max_length):
         # extract row
         data = []
         color = []
         for elem in segment_list:
             if i < len(elem[0]):
+                print elem[1][i]
                 data.append(elem[0][i])
-                color.append(elem[1][i])
-        plt.barh(np.arange(0, len(data)*bar_width, bar_width), data, bar_width, color=color)
+                color.append(state_color_map[elem[1][i]])
+            else:
+                data.append(0)
+                color.append([0.0, 0.0, 0.0, 0.0])
+        plt.barh(np.arange(0, len(data)*bar_width, bar_width), data, bar_width, color=color, left=x_offset)
+        x_offset += data
+        #plt.show()
     # plt.barh(np.arange(0, len(bar_data)*bar_width, bar_width), bar_data, bar_width, color=color)
+    inactive  = patches.Patch(color=state_color_map['000'], label='Inactive')
+    active    = patches.Patch(color=state_color_map['001'], label='Active')
+    working   = patches.Patch(color=state_color_map['101'], label='Working')
+    done      = patches.Patch(color=state_color_map['011'], label='Done')
+
+    plt.legend(handles=[inactive, active, working, done])
+    ylables = list()
+    for key in data_hash.keys():
+        ylables.append(key.split('_')[0] + key.split('_')[1])
+
+    plt.yticks(y_index, ylables)
     plt.show()
 
 

@@ -79,13 +79,15 @@ def GraphData(data):
     # graph segments
     for i in xrange(max_length):
         # extract row
+        data = []
+        color = []
         for elem in segment_list:
-            if i < len(elem)
-        data = [j[0][i] for j in segment_list]
-        color = [j[1][i] for j in segment_list]
+            if i < len(elem[0]):
+                data.append(elem[0][i])
+                color.append(elem[1][i])
         plt.barh(np.arange(0, len(data)*bar_width, bar_width), data, bar_width, color=color)
     # plt.barh(np.arange(0, len(bar_data)*bar_width, bar_width), bar_data, bar_width, color=color)
-    #plt.show()
+    plt.show()
 
 
 def main():

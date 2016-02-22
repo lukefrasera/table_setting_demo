@@ -95,7 +95,6 @@ def GraphData(data_hash):
         color = []
         for elem in segment_list:
             if i < len(elem[0]):
-                print elem[1][i]
                 data.append(elem[0][i])
                 color.append(state_color_map[elem[1][i]])
             else:
@@ -103,19 +102,18 @@ def GraphData(data_hash):
                 color.append([0.0, 0.0, 0.0, 0.0])
         plt.barh(np.arange(0, len(data)*bar_width, bar_width), data, bar_width, color=color, left=x_offset)
         x_offset += data
-        #plt.show()
-    # plt.barh(np.arange(0, len(bar_data)*bar_width, bar_width), bar_data, bar_width, color=color)
     inactive  = patches.Patch(color=state_color_map['000'], label='Inactive')
     active    = patches.Patch(color=state_color_map['001'], label='Active')
     working   = patches.Patch(color=state_color_map['101'], label='Working')
     done      = patches.Patch(color=state_color_map['011'], label='Done')
 
-    plt.legend(handles=[inactive, active, working, done])
+
     ylables = list()
     for key in data_hash.keys():
         ylables.append(key.split('_')[0] + key.split('_')[1])
 
     plt.yticks(y_index, ylables)
+    plt.legend(handles=[inactive, active, working, done])
     plt.show()
 
 

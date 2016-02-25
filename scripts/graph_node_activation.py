@@ -8,12 +8,13 @@ import os
 import logging
 import fnmatch
 import csv
+import pickle
 
 
-state_color_map = {'000' : [0.95, 0.95, 0.95, 1.0],
-                   '001' : [0.2, 0.5, 0.8, 1.0],
-                   '101' : [0.9, 0.4, 0.8, 1.0],
-                   '011' : [0.5, 0.5, 0.5, 1.0]}
+state_color_map = {'000' : [0.8, 0.9, 0.9, 1.0],
+                   '001' : [0.75, 0.6, 0.6, 1.0],
+                   '101' : [0.2, 0.3, 0.25, 1.0],
+                   '011' : [0.3, 0.4, 0.6, 1.0]}
 
 def GetBeginAndEndTime(data):
     return min(data), max(data)
@@ -74,11 +75,19 @@ def GenerateHorizontalBar(data):
     return segments, color
 
 
-def GraphData(data_hash):
+def GraphData(data_hash, order):
     bar_width = 0.4
     segment_list = list()
     max_length = -1
-    for key in data_hash:
+    # setup ordering list
+    order_list = ['' for x in xrange(len(order))]
+    for key in order:
+        # find key in hash the most matches
+        for elem in data_hash.keys():
+            if key in elem:
+                order_list[order[key]] = elem
+    order_list.reverse()
+    for key in order_list:
         print "Processing - [%s]" % key
         # Generate bar graph for key value pair
         bar_info = GenerateHorizontalBar(data_hash[key])
@@ -104,16 +113,34 @@ def GraphData(data_hash):
         x_offset += data
     inactive  = patches.Patch(color=state_color_map['000'], label='Inactive')
     active    = patches.Patch(color=state_color_map['001'], label='Active')
-    working   = patches.Patch(color=state_color_map['101'], label='Working')
+    working   = patches.Patch(color=state_color_map['101'], label='Running')
     done      = patches.Patch(color=state_color_map['011'], label='Done')
 
 
     ylables = list()
-    for key in data_hash.keys():
-        ylables.append(key.split('_')[0] + key.split('_')[1])
+    print order_list
+    labels = {
+        'THEN_0_1_001_state_Data_.csv'  : 'THEN_0',
+        'PLACE_3_1_002_state_Data_.csv' : 'PLACEMAT',
+        'AND_3_1_003_state_Data_.csv'   : 'AND_0',
+        'OR_3_1_004_state_Data_.csv'    : 'OR_0',
+        'PLACE_3_1_005_state_Data_.csv' : 'SPOON',
+        'PLACE_3_1_006_state_Data_.csv' : 'FORK',
+        'THEN_0_1_007_state_Data_.csv'  : 'THEN_1',
+        'PLACE_3_1_008_state_Data_.csv' : 'KNIFE',
+        'PLACE_3_1_009_state_Data_.csv' : 'WINEGLASS',
+        'PLACE_3_1_010_state_Data_.csv' : 'CUP',
+        'PLACE_3_1_011_state_Data_.csv' : 'SODA',
+        'PLACE_3_1_012_state_Data_.csv' : 'PLATE',
+        'PLACE_3_1_013_state_Data_.csv' : 'BOWL',
+    }
+    for key in order_list:
+        ylables.append(labels[key])
 
     plt.yticks(y_index, ylables)
-    plt.legend(handles=[inactive, active, working, done])
+    plt.legend(handles=[inactive, active, working, done], ncol=4, mode="expand")
+    plt.ylabel("Behaviors")
+    plt.xlabel("t(s)")
     plt.show()
 
 
@@ -132,6 +159,9 @@ def main():
 
     print 'Loading files...'
     files = [f for f in os.listdir(args.dir) if os.path.isfile(os.path.join(args.dir, f))]
+    # load ordering dictionary
+    with open('table_setting_demo_node_graph_order.txt', 'r') as file:
+        order = pickle.loads(file.read())
     # Generate data dictionary to store information
     data = dict()
     for file in files:
@@ -144,7 +174,7 @@ def main():
 
     print 'Processing Data...'
 
-    GraphData(data)
+    GraphData(data, order)
 
 if __name__ == "__main__":
     main()

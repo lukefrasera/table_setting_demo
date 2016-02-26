@@ -3,6 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
 import argparse
 import os
 import logging
@@ -31,19 +33,6 @@ def StateChange(a_arr, b_arr):
         return True
     return False
 
-
-def GetStateColor(state):
-    # time, active, done, activation_level
-    color = [1.0, 1.0, 1.0, 1.0]
-    if state == '000':
-        color = [1.0, 1.0, 1.0, 1.0]
-    elif state == '001':
-        color = [0.2, 0.5, 0.8, 1.0]
-    elif state == '101':
-        color = [0.9, 0.4, 0.8, 1.0]
-    elif state == '011':
-        color = [0.8, 0.8, 0.8, 1.0]
-    return color
 
 def GenerateHorizontalBar(data):
     # Determine start and end time
@@ -76,6 +65,15 @@ def GenerateHorizontalBar(data):
 
 
 def GraphData(data_hash, order):
+    #update state color map
+    viridis = plt.get_cmap('viridis')
+    cnorm = colors.Normalize(vmin=0, vmax=100)
+    scalarmap = cmx.ScalarMappable(norm=cnorm, cmap=viridis)
+    state_color_map['000'] = scalarmap.to_rgba(100)
+    state_color_map['001'] = scalarmap.to_rgba(75)
+    state_color_map['101'] = scalarmap.to_rgba(50)
+    state_color_map['011'] = scalarmap.to_rgba(25)
+
     bar_width = 0.4
     segment_list = list()
     max_length = -1
@@ -118,7 +116,6 @@ def GraphData(data_hash, order):
 
 
     ylables = list()
-    print order_list
     labels = {
         'THEN_0_1_001_state_Data_.csv'  : 'THEN_0',
         'PLACE_3_1_002_state_Data_.csv' : 'PLACEMAT',

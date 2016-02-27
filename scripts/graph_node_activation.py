@@ -53,7 +53,6 @@ def GenerateHorizontalBar(data):
             if StateChange(state_array[i-1][1:4], state_array[i][1:4]):
                 plot_state_segments.append((state_array[i][0], GetState(state_array[i][1:4])))
     plot_state_segments.append((state_array[-1][0], '000'))
-
     color = []
     segments = []
     for i in xrange(len(plot_state_segments)-1):
@@ -66,7 +65,7 @@ def GenerateHorizontalBar(data):
 
 def GraphData(data_hash, order):
     #update state color map
-    viridis = plt.get_cmap('viridis')
+    viridis = plt.get_cmap('magma')
     cnorm = colors.Normalize(vmin=0, vmax=100)
     scalarmap = cmx.ScalarMappable(norm=cnorm, cmap=viridis)
     state_color_map['000'] = scalarmap.to_rgba(100)

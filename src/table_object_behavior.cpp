@@ -115,7 +115,7 @@ void TableObject::UpdateActivationPotential() {
     float x = pow(neutral_object_pos[0] - object_pos[0], 2);
     float y = pow(neutral_object_pos[1] - object_pos[1], 2);
     float z = pow(neutral_object_pos[2] - object_pos[2], 2);
-    dist = sqrt(x + y + z);
+    dist = sqrt(x + y); // ========================================== Z REMOVED!!!!!
     state_.activation_potential = 1.0f / dist;
   } else {
     table_setting_demo::object_position pos_msg;
@@ -135,7 +135,7 @@ void TableObject::UpdateActivationPotential() {
         float x = pow(neutral_object_pos[0] - pose_msg.response.transform.transform.translation.x,2);
         float y = pow(neutral_object_pos[1] - pose_msg.response.transform.transform.translation.y,2);
         float z = pow(neutral_object_pos[2] - pose_msg.response.transform.transform.translation.z,2);
-        dist = sqrt(x + y + z);
+        dist = sqrt(x + y); // ========================================== Z REMOVED!!!!!
         state_.activation_potential = 1.0f / dist;
       }
     }

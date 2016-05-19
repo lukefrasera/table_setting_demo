@@ -18,6 +18,7 @@ endif ($ENV{ROBOT} MATCHES "pr2")
 
 if (${BUILD_TABLE_SETTING_DEMO})
   message("-- BUILD: TABLE_SETTING_DEMO")
+  
   find_package(catkin REQUIRED COMPONENTS
     robotics_task_tree_eval
     remote_mutex

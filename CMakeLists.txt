@@ -219,6 +219,10 @@ if (${BUILD_TABLE_SETTING_DEMO})
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
   )
+  add_dependencies(qr_object_track_service
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+  )
   add_dependencies(table_setting_demo
     table_setting_demo_generate_messages_cpp
   )

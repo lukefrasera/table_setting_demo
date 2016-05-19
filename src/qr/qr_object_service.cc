@@ -14,7 +14,7 @@
 #include "table_setting_demo/table_setting_demo_types.h"
 #include "qr/qr_object_detect.h"
 #include "qr_detect.h"
-#include <quirc.h>
+// #include <quirc.h>
 
 
 typedef struct quirc quirc_t;

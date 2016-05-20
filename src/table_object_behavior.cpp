@@ -50,11 +50,14 @@ static const char *dynamic_object_str[] = {
   // "cup",
   // "bowl",
   // "soda",
-  "fork",
-  "spoon",
-  "knife"
+  // "fork",
+  // "spoon",
+  // "knife"
 };
 static const char *static_object_str[] = {
+  "fork",
+  "spoon",
+  "knife",
   "cup",
   "bowl",
   "soda",

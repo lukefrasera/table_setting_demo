@@ -65,6 +65,7 @@ def GenerateHorizontalBar(data):
 
 def GraphData(data_hash, order):
     #update state color map
+    plt.figure(figsize=(16, 9e))
     viridis = plt.get_cmap('magma')
     cnorm = colors.Normalize(vmin=0, vmax=100)
     scalarmap = cmx.ScalarMappable(norm=cnorm, cmap=viridis)
@@ -137,6 +138,7 @@ def GraphData(data_hash, order):
     plt.legend(handles=[inactive, active, working, done], ncol=4, mode="expand")
     plt.ylabel("Behaviors")
     plt.xlabel("t(s)")
+    plt.tight_layout()
     plt.show()
 
 

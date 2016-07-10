@@ -179,6 +179,12 @@ if (${BUILD_TABLE_SETTING_DEMO})
     tf
   )
 
+  option(BUILD_TEST "Build Testing Modules" 1)
+
+  if (${BUILD_TEST})
+    add_subdirectory(testing)
+  endif ()
+
   add_executable(table_setting_demo
     src/table_setting_demo.cpp
     src/table_object_behavior.cpp

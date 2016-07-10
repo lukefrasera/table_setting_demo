@@ -15,8 +15,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include <ros/ros.h>
+#include <iostream>
 #include <vector>
 #include <string>
 #include <boost/thread/thread.hpp>
@@ -34,11 +34,12 @@ class CollaborativeTest {
 
   CollaborativeTest() : nh_("~") {
     // Get parameters for test
-
-
     if (!nh_.getParam("NodeList", nodes)) {
-      LOG_INFO("Error: Node Parameter Found");
-      BOOST_ASSERT(true);
+      LOG_INFO("Error: Node Parameter NOTFound!");
+      BOOST_ASSERT(false);
+    }
+    for (std::vector<std::string>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
+      std::cout << *it << std::endl;
     }
   }
 };
@@ -47,6 +48,6 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "collaborative_test");
 
   CollaborativeTest test;
-  ros::spin();
+  // ros::spin();
   return 0;
 }

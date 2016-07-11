@@ -39,6 +39,7 @@ class CollabTestBehavior : public TableObject {
   virtual void Work();
   virtual bool CheckWork();
   virtual void UndoWork();
+  virtual void UpdateActivationPotential();
 };
 };  // namespace task_net
 #endif  // TESTING_INCLUDE_COLLABORATIVE_TEST_H_

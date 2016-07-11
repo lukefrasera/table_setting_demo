@@ -67,4 +67,6 @@ bool CollabTestBehavior::CheckWork() {
 void CollabTestBehavior::UndoWork() {
   mut.Release();
 }
+
+void CollabTestBehavior::UpdateActivationPotential() {}
 };  // namespace task_net

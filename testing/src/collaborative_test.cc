@@ -30,8 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class CollaborativeTest {
  public:
   ros::NodeHandle nh_;
-  boost::shared_ptr< boost::shared_ptr<task_net::Node> > net_robot_1;
-  boost::shared_ptr< boost::shared_ptr<task_net::Node> > net_robot_2;
+  std::vector< boost::shared_ptr<task_net::Node> > net_robot_1;
+  std::vector< boost::shared_ptr<task_net::Node> > net_robot_2;
   std::vector<std::string> nodes;
 
   CollaborativeTest() : nh_("~") {
@@ -62,6 +62,7 @@ class CollaborativeTest {
     std::string object;
     std::vector<float> neutral_object_pos;
     std::vector<float> object_pos;
+
 
     BOOST_ASSERT(nh_.getParam("ObjectPositions/neutral", neutral_object_pos));
     for (std::vector<std::string>::iterator it = nodes.begin();
@@ -104,20 +105,66 @@ class CollaborativeTest {
         nh_.getParam((param_prefix + *it + "/mask/type").c_str(), type)
       );
       int robot;
-      BOOST_ASSERT(n
-        h_.getParam((param_prefix + *it + "/mask/robot").c_str(), robot)
+      BOOST_ASSERT(
+        nh_.getParam((param_prefix + *it + "/mask/robot").c_str(), robot)
       );
 
+      boost::shared_ptr<task_net::Node> node;
       switch (type) {
         case task_net::THEN:
-          if (robot == task_net::PR2)
-            net_robot_1[index]
+          node = boost::shared_ptr<task_net::Node>(
+              new task_net::ThenBehavior(name_param,
+                peers_param,
+                children_param,
+                parent_param,
+                state,
+                false));
+          robot == task_net::PR2 ? 
+            net_robot_1.push_back(node) : net_robot_2.push_back(node);
+          break;
         case task_net::OR:
+          node = boost::shared_ptr<task_net::Node>(
+              new task_net::OrBehavior(name_param,
+                peers_param,
+                children_param,
+                parent_param,
+                state,
+                false));
+          robot == task_net::PR2 ? 
+            net_robot_1.push_back(node) : net_robot_2.push_back(node);
+          break;
         case task_net::AND:
+          node = boost::shared_ptr<task_net::Node>(
+              new task_net::AndBehavior(name_param,
+                peers_param,
+                children_param,
+                parent_param,
+                state,
+                false));
+          robot == task_net::PR2 ? 
+            net_robot_1.push_back(node) : net_robot_2.push_back(node);
+          break;
         case task_net::BEHAVIOR:
+          BOOST_ASSERT_MSG(
+            nh_.getParam(("ObjectPositions/" + *it).c_str(), object_pos),
+            ("ObjectPositions/" + *it).c_str()
+          );
+          node = boost::shared_ptr<task_net::Node>(
+              new task_net::CollabTestBehavior(name_param,
+                peers_param,
+                children_param,
+                parent_param,
+                state,
+                "/right_arm_mutex",
+                *it,
+                neutral_object_pos,
+                object_pos));
+          robot == task_net::PR2 ? 
+            net_robot_1.push_back(node) : net_robot_2.push_back(node);
           break;
         case task_net::ROOT:
         default:
+          LOG_INFO("Error Unknown Node type!");
           break;
       }
     }

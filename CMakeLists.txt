@@ -167,6 +167,7 @@ endif (${ROS_VERSION} MATCHES "groovy")
 ################################################################################
 ################################################################################
 if (${BUILD_TABLE_SETTING_DEMO})
+  include(cmake/CPlusPlusCompiler.cmake)
   find_package(OpenCV 3 REQUIRED)
   find_package(catkin REQUIRED COMPONENTS
     std_msgs
@@ -182,6 +183,10 @@ if (${BUILD_TABLE_SETTING_DEMO})
   option(BUILD_TEST "Build Testing Modules" 1)
 
   if (${BUILD_TEST})
+
+    add_library(table_object_behavior
+      src/table_object_behavior.cpp
+    )
     add_subdirectory(testing)
   endif ()
 

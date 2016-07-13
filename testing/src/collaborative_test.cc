@@ -67,7 +67,7 @@ class CollaborativeTest {
     BOOST_ASSERT(nh_.getParam("ObjectPositions/neutral", neutral_object_pos));
     for (std::vector<std::string>::iterator it = nodes.begin();
         it != nodes.end(); ++it) {
-      // std::cout << *it << std::endl;
+      std::cout << "NODE: " << *it << std::endl;
 
       name_param.topic = *it;
 
@@ -78,10 +78,12 @@ class CollaborativeTest {
           parent_param.topic
         )
       );
-      std::cout << parent_param.topic << std::endl;
+
+      std::cout << "PARENT: " << parent_param.topic << std::endl;
 
       // Get the child parameters
       children_param.clear();
+      children_param_str.clear();
       BOOST_ASSERT(
         nh_.getParam(
           (param_prefix + *it + "/" + param_ext_children).c_str(),
@@ -97,6 +99,9 @@ class CollaborativeTest {
           temp.pub = NULL;
           children_param.push_back(temp);
         }
+      }
+      for (int i = 0; i < children_param.size(); ++i) {
+        std::cout << "Children:[" << i << "] " << children_param[i].topic << std::endl;
       }
 
       // Create the nodes with the appropriate attributes
@@ -163,6 +168,7 @@ class CollaborativeTest {
             net_robot_1.push_back(node) : net_robot_2.push_back(node);
           break;
         case task_net::ROOT:
+          break;
         default:
           LOG_INFO("Error Unknown Node type!");
           break;

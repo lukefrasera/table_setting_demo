@@ -3,4 +3,6 @@
     <rosparam file="$(find table_setting_demo)/params/collaborative_test.yaml"/>
     <rosparam file="$(find table_setting_demo)/testing/params/collab_params.yaml"/>
   </node>
+
+  <node name="gui" pkg="rqt_gui" type="rqt_gui" output="screen" />
 </launch>

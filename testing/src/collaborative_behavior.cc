@@ -42,6 +42,7 @@ CollabTestBehavior::CollabTestBehavior(
       neutral_pos,
       use_local_callback_queue,
       mtime) {
+  state_.activation_potential = 1.0f;
 }
 
 CollabTestBehavior::~CollabTestBehavior() {}

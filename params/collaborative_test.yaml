@@ -58,7 +58,7 @@ Nodes:
       node: 3
     parent: 'THEN_0_1_001'
     children: ['NONE']
-    peers: ['PLACE_2_0_003']
+    peers: ['PLACE_3_0_003']
   # ROBOT: PR2 =================================================================
   ROOT_4_0_000:
     mask:

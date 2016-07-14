@@ -50,6 +50,7 @@ class CollaborativeTest {
     std::string param_prefix = "Nodes/";
     std::string param_ext_children = "children";
     std::string param_ext_parent = "parent";
+    std::string param_ext_peers = "peers";
 
     std::vector<std::string> peers_param_str;
     std::vector<std::string> children_param_str;
@@ -76,8 +77,8 @@ class CollaborativeTest {
         nh_.getParam(
           (param_prefix + *it + "/" + param_ext_parent).c_str(),
           parent_param.topic
-        )
-      );
+        
+)      );
 
       std::cout << "PARENT: " << parent_param.topic << std::endl;
 
@@ -95,13 +96,33 @@ class CollaborativeTest {
             jt != children_param_str.end(); ++jt) {
           // std::cout << *jt << std::endl;
           task_net::NodeId_t temp;
-          temp.topic = *it;
+          temp.topic = *jt;
           temp.pub = NULL;
           children_param.push_back(temp);
         }
       }
       for (int i = 0; i < children_param.size(); ++i) {
         std::cout << "Children:[" << i << "] " << children_param[i].topic << std::endl;
+      }
+
+      // Get the Peers parameters
+      peers_param_str.clear();
+      peers_param.clear();
+      BOOST_ASSERT(
+        nh_.getParam(
+          (param_prefix + *it + "/" + param_ext_peers).c_str(),
+          peers_param_str
+        )
+      );
+      if (peers_param_str.size() > 0 && peers_param_str[0] != "NONE") {
+        for (std::vector<std::string>::iterator jt = peers_param_str.begin();
+            jt != peers_param_str.end(); ++jt) {
+          task_net::NodeId_t temp;
+          temp.topic = *jt;
+          temp.pub = NULL;
+          peers_param.push_back(temp);
+          std::cout << "PEERS: " << *jt << std::endl;
+        }
       }
 
       // Create the nodes with the appropriate attributes

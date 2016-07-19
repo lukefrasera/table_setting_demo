@@ -181,7 +181,7 @@ class CollaborativeTest {
                 children_param,
                 parent_param,
                 state,
-                "/right_arm_mutex",
+                robot == task_net::PR2 ? "/right_arm_mutex" : "/left_arm_mutex",
                 *it,
                 neutral_object_pos,
                 object_pos));

@@ -77,8 +77,8 @@ class CollaborativeTest {
         nh_.getParam(
           (param_prefix + *it + "/" + param_ext_parent).c_str(),
           parent_param.topic
-        
-)      );
+        )
+      );
 
       std::cout << "PARENT: " << parent_param.topic << std::endl;
 

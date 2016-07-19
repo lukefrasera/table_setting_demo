@@ -1,4 +1,5 @@
 <launch>
+  <rosparam file="$(find table_setting_demo)/params/collaborative_test.yaml"/>
   <node name="remote_mutex_r" pkg="remote_mutex" type="remote_mutex_service" output="screen" args="right_arm_mutex"/>
   <node name="remote_mutex_l" pkg="remote_mutex" type="remote_mutex_service" output="screen" args="left_arm_mutex"/>
   <node name="collabTest" pkg="table_setting_demo" type="collaborative_test" output="screen">

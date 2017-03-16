@@ -168,7 +168,7 @@ endif (${ROS_VERSION} MATCHES "groovy")
 ################################################################################
 if (${BUILD_TABLE_SETTING_DEMO})
   include(cmake/CPlusPlusCompiler.cmake)
-  find_package(OpenCV 3 REQUIRED)
+  #set(CMAKE_PREFIX_PATH /home/luke/Documents/opencv/install/share/OpenCV;${CMAKE_PREFIX_PATH})
   find_package(catkin REQUIRED COMPONENTS
     std_msgs
     sensor_msgs
@@ -227,9 +227,9 @@ if (${BUILD_TABLE_SETTING_DEMO})
   )
 
   target_link_libraries(qr_object_track_service
+    ${OpenCV_LIBS}
     ${QR_LIBRARIES}
     ${catkin_LIBRARIES}
-    ${OpenCV_LIBS}
   )
   add_dependencies(qr_object_track_service
     ${${PROJECT_NAME}_EXPORTED_TARGETS}

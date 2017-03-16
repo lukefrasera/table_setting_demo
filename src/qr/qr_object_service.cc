@@ -294,9 +294,13 @@ bool QrObjectService::QrDetectionProcess(const cv::Mat &image) {
       randomColor(rng),
       2);
   }
+  printf("Helloe\n");
   cv::imshow("OVERLAY", img);
+  printf("After\n");
   cv::waitKey(10);
+  printf("After waitkey\n");
   object_detector.UpdateFrame(image);
+  printf("UpdatingFrames\n");
   processing = false;
   return true;
 }
